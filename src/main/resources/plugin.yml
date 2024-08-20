@@ -7,7 +7,6 @@ softdepend: [MythicMobs]
 commands:
   emergency:
     description: Handles emergency commands
-    usage: /<command> [options]
     permission: emergency.use
 
 permissions:
