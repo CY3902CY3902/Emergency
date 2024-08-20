@@ -52,7 +52,6 @@ public class TimeEmergency extends AbstractsEmergency{
             return;
         }
         TimesWorld timeWorld = (TimesWorld) abstractsWorld;
-        this.emergency.info("事件已開始", Level.INFO);
         delayTimeAndStop(timeWorld, group);
         createBossBar(abstractsWorld);
         startCommand(abstractsWorld);
@@ -100,7 +99,9 @@ public class TimeEmergency extends AbstractsEmergency{
         }
 
         this.removeBossBar(abstractsWorld);
-        this.bossBar.setProgress(1);
+        if (bossBar != null) {
+            bossBar.setProgress(1);
+        }
         this.endCommand(abstractsWorld);
         abstractsWorld.getWorldEmergency().remove(this);
     }

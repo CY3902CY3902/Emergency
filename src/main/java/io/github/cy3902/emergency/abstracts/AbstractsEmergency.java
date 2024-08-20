@@ -139,6 +139,22 @@ public abstract class AbstractsEmergency implements EmergencyController {
         return endCommand;
     }
 
+    // Getter for onJoinCommand
+    public List<String> getOnJoinCommand() {
+        if (onJoinCommand == null) {
+            return Collections.emptyList();
+        }
+        return onJoinCommand;
+    }
+
+    // Getter for onQuitCommand
+    public List<String> getOnQuitCommand() {
+        if (onQuitCommand == null) {
+            return Collections.emptyList();
+        }
+        return onQuitCommand;
+    }
+
     // Getter for bossBarBool
     public boolean isBossBarBool() {
         return bossBarBool;

@@ -1,7 +1,7 @@
 test:
   group:
   - test
-  chance: 1
+  chance: 0.3
   type: Time
   days: 0
   duration: 10
@@ -11,10 +11,19 @@ test:
     title: test
     bar_style: SOLID
   start_command:
-    - test
+    - give %player% apple
   end_command:
-    - test
+    - give %player% apple
   on_join_command:
     - give %player% apple
   on_quit_command:
     - give %player% apple
+normal:
+  group:
+    - test
+  chance: 0.7
+  type: Time
+  days: 0
+  duration: 10
+  BossBar:
+    enable: false

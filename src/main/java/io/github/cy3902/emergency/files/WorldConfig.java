@@ -1,7 +1,6 @@
 package io.github.cy3902.emergency.files;
 
 
-import io.github.cy3902.emergency.abstracts.FileProvider;
 import io.github.cy3902.emergency.abstracts.FileProviderList;
 import org.bukkit.configuration.file.YamlConfiguration;
 

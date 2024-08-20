@@ -93,7 +93,9 @@ public class DayEmergency extends AbstractsEmergency {
         }
 
         this.removeBossBar(abstractsWorld);
-        this.bossBar.setProgress(1);
+        if (bossBar != null) {
+            bossBar.setProgress(1);
+        }
         this.endCommand(abstractsWorld);
         abstractsWorld.getWorldEmergency().remove(this);
     }

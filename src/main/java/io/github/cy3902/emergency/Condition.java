@@ -1,16 +1,13 @@
 package io.github.cy3902.emergency;
 
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.conditions.IEntityCondition;
 import io.lumine.mythic.core.skills.conditions.CustomCondition;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -37,21 +34,26 @@ public class Condition extends CustomCondition implements IEntityCondition {
             return false;
         }
 
-        //世界天數週期的緊急事件是否存在
-        List<AbstractsEmergency> abstractsEmergencies = Emergency.getEmergencyDayWorld().get(world).getWorldEmergency();
-        List<String> eventNames = abstractsEmergencies.stream()
-                .map(customObject -> customObject.getName())
-                .collect(Collectors.toList());
-        if (emergencies.stream().anyMatch(eventNames::contains)) {
-            return true;
+        List<AbstractsEmergency> dayWorldEmergencies = Emergency.getEmergencyDayWorld().get(world).getWorldEmergency();
+        List<AbstractsEmergency> timeWorldEmergencies = Emergency.getEmergencyTimeWorld().get(world).getWorldEmergency();
+
+        Set<String> eventNames = new HashSet<>();
+        if (dayWorldEmergencies != null) {
+            for (AbstractsEmergency emergency : dayWorldEmergencies) {
+                eventNames.add(emergency.getName());
+            }
         }
-        //時間週期的緊急事件是否存在
-        abstractsEmergencies = Emergency.getEmergencyTimeWorld().get(world).getWorldEmergency();
-        eventNames = abstractsEmergencies.stream()
-                .map(customObject -> customObject.getName())
-                .collect(Collectors.toList());
-        if (emergencies.stream().anyMatch(eventNames::contains)) {
-            return true;
+        if (timeWorldEmergencies != null) {
+            for (AbstractsEmergency emergency : timeWorldEmergencies) {
+                eventNames.add(emergency.getName());
+            }
+        }
+
+        // 檢查是否有任何指定的緊急事件名稱存在
+        for (String emergency : emergencies) {
+            if (eventNames.contains(emergency)) {
+                return true;
+            }
         }
 
         return false;

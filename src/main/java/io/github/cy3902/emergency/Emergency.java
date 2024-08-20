@@ -5,7 +5,7 @@ import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.command.Commands;
 import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.emergency.TimeEmergency;
-import io.github.cy3902.emergency.files.Config;
+import io.github.cy3902.emergency.files.ConfigFile;
 import io.github.cy3902.emergency.files.EmergencyConfig;
 import io.github.cy3902.emergency.files.Lang;
 import io.github.cy3902.emergency.files.WorldConfig;
@@ -29,12 +29,10 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -49,7 +47,13 @@ public final class Emergency extends JavaPlugin implements Listener {
     private Lang lang;
     private EmergencyConfig emergencyConfig;
     private WorldConfig worldConfig;
-    private Config config;
+
+
+    public ConfigFile getConfigFile() {
+        return configFile;
+    }
+
+    private ConfigFile configFile;
 
     private Lang.LangType langType;
 
@@ -110,7 +114,7 @@ public final class Emergency extends JavaPlugin implements Listener {
         //世界天數週期的緊急事件註冊
         this.emergencyDayGroup = new HashMap<>();
         this.lang = null;
-        this.config = new Config("plugins/Emergency","Emergency/", "config.yml");
+        this.configFile = new ConfigFile("plugins/Emergency","Emergency/", "config.yml");
         this.lang = new Lang("plugins/Emergency/Lang", "Lang/", this.langType + ".yml");
         this.emergencyConfig = new EmergencyConfig("plugins/Emergency/Event");
         this.worldConfig = new WorldConfig("plugins/Emergency/World");
@@ -126,6 +130,7 @@ public final class Emergency extends JavaPlugin implements Listener {
         WorldUtils.allWorldStop();
         EmergencyUtils.allEmergencyStop();
     }
+
 
 
     @EventHandler
