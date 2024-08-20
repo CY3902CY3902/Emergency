@@ -1,0 +1,20 @@
+test:
+  group:
+  - test
+  chance: 1
+  type: Time
+  days: 0
+  duration: 10
+  BossBar:
+    enable: true
+    color: RED
+    title: test
+    bar_style: SOLID
+  start_command:
+    - test
+  end_command:
+    - test
+  on_join_command:
+    - give %player% apple
+  on_quit_command:
+    - give %player% apple
