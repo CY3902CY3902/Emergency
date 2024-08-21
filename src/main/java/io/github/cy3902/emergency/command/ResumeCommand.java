@@ -61,9 +61,7 @@ public class ResumeCommand extends AbstractsCommand {
             return;
         }
 
-        if (isGroupAlreadyRunning(abstractsWorld, group)) {
-            sender.sendMessage(lang.plugin + abstractsWorld.getWorld().getName() +lang.groupAlreadyRunning);
-        } else {
+        if (!isGroupAlreadyRunning(abstractsWorld, group)) {
             abstractsWorld.resume(group);
         }
     }

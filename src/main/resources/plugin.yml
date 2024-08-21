@@ -2,7 +2,7 @@ name: Emergency
 version: '${project.version}'
 main: io.github.cy3902.emergency.Emergency
 api-version: 1.19
-softdepend: [MythicMobs]
+softdepend: [MythicMobs,PlaceholderAPI]
 
 commands:
   emergency:

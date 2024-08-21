@@ -2,6 +2,7 @@ package io.github.cy3902.emergency;
 
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
+import io.github.cy3902.emergency.api.MythicMobsEventListener;
 import io.github.cy3902.emergency.command.Commands;
 import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.emergency.TimeEmergency;
@@ -18,25 +19,22 @@ import io.github.cy3902.emergency.utils.MsgUtils;
 import io.github.cy3902.emergency.utils.WorldUtils;
 import io.github.cy3902.emergency.world.DayWorld;
 import io.github.cy3902.emergency.world.TimesWorld;
-import io.lumine.mythic.api.config.MythicLineConfig;
-import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 
-public final class Emergency extends JavaPlugin implements Listener {
+public final class Emergency extends JavaPlugin  {
 
 
     private MsgUtils msgUtils = new MsgUtils(this);
@@ -81,12 +79,20 @@ public final class Emergency extends JavaPlugin implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        saveDefaultConfig();
-        //監聽
-        getServer().getPluginManager().registerEvents(this, this);
+
+        Plugin mythicMobs = Bukkit.getPluginManager().getPlugin("MythicMobs");
+        if (mythicMobs != null && mythicMobs.isEnabled()) {
+            registerMythicMobsEvents();
+        }
+
 
 
     }
+
+    private void registerMythicMobsEvents() {
+        getServer().getPluginManager().registerEvents(new MythicMobsEventListener(), this);
+    }
+
 
     public void initEssential() throws IOException {
         File eventFolder = new File(getDataFolder(), "Event");
@@ -131,16 +137,6 @@ public final class Emergency extends JavaPlugin implements Listener {
         EmergencyUtils.allEmergencyStop();
     }
 
-
-
-    @EventHandler
-    public void onMythicConditionLoad(MythicConditionLoadEvent event) {
-        if(event.getConditionName().equalsIgnoreCase("Emergency"))	{
-            MythicLineConfig config = event.getConfig();
-            String argument = config.getString("name", "default");
-            event.register(new Condition( event.getConditionName(), argument, event.getConfig()));
-        }
-    }
 
 
     @EventHandler

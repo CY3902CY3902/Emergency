@@ -1,5 +1,6 @@
-package io.github.cy3902.emergency;
+package io.github.cy3902.emergency.api;
 
+import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
