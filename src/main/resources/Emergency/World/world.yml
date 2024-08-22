@@ -1,5 +1,5 @@
 world:
-  dayGroup:
+  day_group:
     - daytest
-  timeGroup:
+  time_group:
     - test

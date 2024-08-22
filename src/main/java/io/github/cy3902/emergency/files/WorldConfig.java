@@ -21,8 +21,8 @@ public class WorldConfig extends FileProviderList {
                 }
         }
         protected void readWorld(String name) {
-                List<String> dayGroup = getValue(this.yml, name+".dayGroup", Arrays.asList(""));
-                List<String> timeGroup = getValue(this.yml, name+".timeGroup", Arrays.asList(""));
+                List<String> dayGroup = getValue(this.yml, name+".day_group", Arrays.asList(""));
+                List<String> timeGroup = getValue(this.yml, name+".time_group", Arrays.asList(""));
                 emergency.registerWorld(name,dayGroup,timeGroup);
         }
 
