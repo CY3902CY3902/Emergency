@@ -23,6 +23,7 @@ public class Lang extends FileProvider {
     public String noPermission;
     public String reload;
     public String reloadError;
+    public String conflictingPlaceholders;
     public String worldNotFoundMessage;
     public String emergencyNotFoundMessage;
     public String startCommandComplete;
@@ -47,8 +48,8 @@ public class Lang extends FileProvider {
                 "&f------ &b&lEmergency &f------",
                 "&a指令: &e/emergency",
                 "&a子命令:",
-                "&8 - reload &7重新載入此插件的所有設定檔",
-                "&8 - start <事件群組> <事件名> <世界名> &7指定世界下執行指定緊急事件",
+                "&8 - reload &7重新載入此插件的所有設定檔(會強制停止當前所有事件)",
+                "&8 - start <事件群組> <事件名> <世界名> &7指定世界下執行指定緊急事件(會強制停止當前同事件群組與世界名的事件)",
                 "&8 - pause <事件群組>  <世界名> &7暫停指定緊急事件群組在指定世界下運行",
                 "&8 - resume <事件群組> <世界名> &7恢復指定緊急事件群組在指定世界下運行"
         );
@@ -60,6 +61,7 @@ public class Lang extends FileProvider {
         this.noPermission = emergency.color(getValue(this.yml,"no_permission","&c你沒有權限使用此指定"));
         this.reloadError = emergency.color(getValue(this.yml,"reload_error","&c載入此插件的所有設定檔時出現錯誤"));
         this.readYmlError = emergency.color(getValue(this.yml,"read_yml_error", "&cYML 文件配置錯誤! 檔案路徑: "));
+        this.conflictingPlaceholders=  emergency.color(getValue(this.yml,"conflicting_placeholders", "&c佔位符錯誤，(%online_player%、 %player in world% 不可在同一指令中出現) 指令: "));
         this.duplicateEmergencyMessage = emergency.color(getValue(this.yml,"duplicate_emergency_message","&c緊急事件名稱出現重複，請修改緊急事件設定檔"));
         this.worldNotFoundMessage = emergency.color(getValue(this.yml,"world_not_found_message","&c指定世界不存在"));
         this.emergencyNotFoundMessage = emergency.color(getValue(this.yml,"emergency_not_found_message","&c指定事件不存在"));

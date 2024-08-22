@@ -176,7 +176,7 @@ public final class Emergency extends JavaPlugin  {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
                     bossBar.addPlayer(player);
-                    abstractsEmergency.OnJoinCommand(player);
+                    abstractsEmergency.OnJoinCommand(abstractsWorldMap.get(worldName),player);
                 }
             }
         }
@@ -192,7 +192,7 @@ public final class Emergency extends JavaPlugin  {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
                     bossBar.removePlayer(player);
-                    abstractsEmergency.OnQuitCommand(player);
+                    abstractsEmergency.OnQuitCommand(abstractsWorldMap.get(worldName),player);
                 }
             }
         }

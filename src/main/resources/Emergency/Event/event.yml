@@ -11,9 +11,9 @@ test:
     title: test
     bar_style: SOLID
   start_command:
-    - give %player% apple
+    - give %online_player% apple
   end_command:
-    - give %player% apple
+    - give %player_in_world% apple
   on_join_command:
     - give %player% apple
   on_quit_command:

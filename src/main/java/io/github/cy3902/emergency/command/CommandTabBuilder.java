@@ -48,12 +48,9 @@ public class CommandTabBuilder {
     public class TabList {
 
         private List<String> returnList;
-        //此参数出现的位置
         private int position;
 
-        //识别上一个参数
         private List<String> previousArg;
-        //上一个参数出现的位置
         private int previousPosition;
 
         public TabList(List<String> returnList, int position, List<String> previousArg, int previousPosition) {

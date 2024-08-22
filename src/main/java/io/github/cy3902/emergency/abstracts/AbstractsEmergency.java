@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
@@ -36,12 +37,27 @@ public abstract class AbstractsEmergency implements EmergencyController {
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(player -> player.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
+        if(startCommand.equals(Arrays.asList(""))){ return;};
         for (String c : startCommand) {
-            for (Player player : playersInWorld) {
-                String playerCommand = c.replace("%player%", player.getName());
-
-                // 執行命令
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            if(c.contains("%player_in_world%") && c.contains("%online_player%")){
+                this.emergency.info(emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
+                return;
+            }
+            if(c.contains("%player_in_world%")){
+                for (Player player : playersInWorld) {
+                    String playerCommand = c.replace("%player_in_world%", player.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }else if(c.contains("%online_player%")){
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    String playerCommand = c.replace("%online_player%", player.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }
+            else{
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), c);
             }
         }
     }
@@ -50,30 +66,87 @@ public abstract class AbstractsEmergency implements EmergencyController {
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(player -> player.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
+        if(endCommand.equals(Arrays.asList(""))){ return;};
         for (String c : endCommand) {
-            for (Player player : playersInWorld) {
-                String playerCommand = c.replace("%player%", player.getName());
-
-                // 執行命令
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            if(c.contains("%player_in_world%") && c.contains("%online_player%")){
+                this.emergency.info(emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
+                continue;
+            }
+            if(c.contains("%player_in_world%")){
+                for (Player player : playersInWorld) {
+                    String playerCommand = c.replace("%player_in_world%", player.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }else if(c.contains("%online_player%")){
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    String playerCommand = c.replace("%online_player%", player.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }
+            else{
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), c);
             }
         }
     }
 
-    public void OnJoinCommand(Player  player){
+    public void OnJoinCommand(AbstractsWorld abstractsWorld,Player  player){
+        Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
+                .filter(p -> p.getWorld().equals(abstractsWorld.getWorld()))
+                .collect(Collectors.toList());
+        if(onJoinCommand.equals(Arrays.asList(""))){ return;};
         for (String c : onJoinCommand) {
+            if(c.contains("%player_in_world%") && c.contains("%online_player%")){
+                this.emergency.info(emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
+                continue;
+            }
             String playerCommand = c.replace("%player%", player.getName());
-
-            // 執行命令
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            if(c.contains("%player_in_world%")){
+                for (Player p : playersInWorld) {
+                    playerCommand = playerCommand.replace("%player%", p.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }else if(c.contains("%online_player%")){
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    playerCommand = playerCommand.replace("%player%", p.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }
+            else{
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            }
         }
     }
-    public void OnQuitCommand(Player  player){
+    public void OnQuitCommand(AbstractsWorld abstractsWorld,Player  player){
+        Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
+                .filter(p -> p.getWorld().equals(abstractsWorld.getWorld()))
+                .collect(Collectors.toList());
+        if(onQuitCommand.equals(Arrays.asList(""))){ return;};
         for (String c : onQuitCommand) {
+            if(c.contains("%player_in_world%") && c.contains("%online_player%")){
+                this.emergency.info(emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
+                continue;
+            }
             String playerCommand = c.replace("%player%", player.getName());
-
-            // 執行命令
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            if(c.contains("%player_in_world%")){
+                for (Player p : playersInWorld) {
+                    playerCommand = playerCommand.replace("%player%", p.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }else if(c.contains("%online_player%")){
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    playerCommand = playerCommand.replace("%player%", p.getName());
+                    // 執行命令
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+                }
+            }
+            else{
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), playerCommand);
+            }
         }
     }
 
