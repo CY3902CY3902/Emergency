@@ -29,13 +29,13 @@ public class StartCommand extends AbstractsCommand {
 
         AbstractsEmergency abstractsEmergency = EmergencyUtils.findEmergencyByName(args[2]);
         if (abstractsEmergency == null) {
-            sender.sendMessage(lang.plugin + lang.emergencyNotFoundMessage + abstractsEmergency.getName());
+            sender.sendMessage(lang.plugin + lang.emergencyNotFoundMessage + args[2]);
             return;
         }
 
         AbstractsWorld abstractsWorld = getCorrespondingWorld(abstractsEmergency, args[3]);
         if (abstractsWorld == null) {
-            sender.sendMessage(lang.plugin + lang.worldNotFoundMessage + abstractsWorld.getWorld().getName());
+            sender.sendMessage(lang.plugin + lang.worldNotFoundMessage + args[3]);
             return;
         }
         abstractsWorld.startEmergency(group, abstractsEmergency);
