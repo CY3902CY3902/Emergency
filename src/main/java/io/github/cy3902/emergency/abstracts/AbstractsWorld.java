@@ -1,8 +1,7 @@
 package io.github.cy3902.emergency.abstracts;
 
 import io.github.cy3902.emergency.Emergency;
-import io.github.cy3902.emergency.interfaces.WorldController;
-import io.github.cy3902.emergency.task.TaskManager;
+import io.github.cy3902.emergency.manager.TaskManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -11,7 +10,7 @@ import java.util.logging.Level;
 
 
 
-public abstract class AbstractsWorld implements WorldController{
+public abstract class AbstractsWorld{
 
 
     protected final Emergency emergency;
@@ -34,16 +33,16 @@ public abstract class AbstractsWorld implements WorldController{
     }
 
 
-    @Override
+
     public void randomEmergency(){};
 
-    @Override
+
     public void startEmergency(String group,  AbstractsEmergency abstractsEmergency){}
 
-    @Override
+
     public void pause(String group){};
 
-    @Override
+
     public void resume(String group){};
 
     // Getter for world

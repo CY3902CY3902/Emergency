@@ -2,6 +2,8 @@ package io.github.cy3902.emergency.files;
 
 
 import io.github.cy3902.emergency.abstracts.FileProviderList;
+import io.github.cy3902.emergency.world.DayWorld;
+import io.github.cy3902.emergency.world.TimeWorld;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.Arrays;
@@ -23,7 +25,10 @@ public class WorldConfig extends FileProviderList {
         protected void readWorld(String name) {
                 List<String> dayGroup = getValue(this.yml, name+".day_group", Arrays.asList(""));
                 List<String> timeGroup = getValue(this.yml, name+".time_group", Arrays.asList(""));
-                emergency.registerWorld(name,dayGroup,timeGroup);
+                DayWorld dayWorld = new DayWorld(name,dayGroup);
+                TimeWorld timeWorld = new TimeWorld(name,timeGroup);
+                emergency.registerWorld(dayWorld);
+                emergency.registerWorld(timeWorld);
         }
 
 

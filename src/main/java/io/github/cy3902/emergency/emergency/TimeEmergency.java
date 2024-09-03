@@ -4,10 +4,8 @@ import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.utils.EmergencyUtils;
-import io.github.cy3902.emergency.world.TimesWorld;
-import org.bukkit.Bukkit;
+import io.github.cy3902.emergency.world.TimeWorld;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,21 +49,21 @@ public class TimeEmergency extends AbstractsEmergency{
             this.emergency.info(emergency.getLang().worldNotFoundMessage + abstractsWorld.getWorld().getName(), Level.SEVERE);
             return;
         }
-        TimesWorld timeWorld = (TimesWorld) abstractsWorld;
+        TimeWorld timeWorld = (TimeWorld) abstractsWorld;
         delayTimeAndStop(timeWorld, group);
         createBossBar(abstractsWorld);
         startCommand(abstractsWorld);
     }
 
 
-    protected void delayTimeAndStop(TimesWorld world, String group) {
+    protected void delayTimeAndStop(TimeWorld world, String group) {
         long d = this.duration;
         String taskId = "task-" + group + "-" + world.getWorld().getName();
         Runnable taskRunnable = new Runnable() {
             double progress = 1.0;
-            long totalTimes = d * 20L;
+            long totalDurationInSeconds = d * 20L;
             long updateInterval = 20L;
-            double progressDecreasePerTime = 1.0 / (totalTimes / updateInterval);
+            double progressDecreasePerTime = 1.0 / (totalDurationInSeconds / updateInterval);
 
             @Override
             public void run() {
@@ -75,7 +73,7 @@ public class TimeEmergency extends AbstractsEmergency{
                     if (bossBar != null) {
                         bossBar.setProgress(0);
                     }
-                    EmergencyUtils.earlyTimeStop(world, group);
+                    emergency.getEmergencyManager().earlyStop(world, group);
                 } else {
                     if (bossBar != null) {
                         bossBar.setProgress(progress);
@@ -112,6 +110,7 @@ public class TimeEmergency extends AbstractsEmergency{
             this.emergency.info(emergency.getLang().worldNotFoundMessage+ abstractsWorld.getWorld().getName(), Level.SEVERE);
             return;
         }
+
         String taskId = "task-" + group + "-" + abstractsWorld.getWorld().getName();
         Emergency.getInstance().getTaskManager().pauseTask(taskId);
     }

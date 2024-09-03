@@ -4,72 +4,52 @@ import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.api.MythicMobsEventListener;
 import io.github.cy3902.emergency.command.Commands;
-import io.github.cy3902.emergency.emergency.DayEmergency;
-import io.github.cy3902.emergency.emergency.TimeEmergency;
 import io.github.cy3902.emergency.files.ConfigFile;
 import io.github.cy3902.emergency.files.EmergencyConfig;
 import io.github.cy3902.emergency.files.Lang;
 import io.github.cy3902.emergency.files.WorldConfig;
-import io.github.cy3902.emergency.task.TaskManager;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
+import io.github.cy3902.emergency.manager.EmergencyManager;
+import io.github.cy3902.emergency.manager.TaskManager;
+import io.github.cy3902.emergency.manager.WorldManager;
 import io.github.cy3902.emergency.utils.FileUtils;
 import io.github.cy3902.emergency.utils.MsgUtils;
 
 
-import io.github.cy3902.emergency.utils.WorldUtils;
-import io.github.cy3902.emergency.world.DayWorld;
-import io.github.cy3902.emergency.world.TimesWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 
-public final class Emergency extends JavaPlugin  {
+public final class Emergency extends JavaPlugin implements Listener {
 
 
     private MsgUtils msgUtils = new MsgUtils(this);
 
     private static Emergency emergency;
-
-    //語系
     private Lang lang;
-    private EmergencyConfig emergencyConfig;
+    private EmergencyConfig emergencyConfig ;
     private WorldConfig worldConfig;
-
-
-    public ConfigFile getConfigFile() {
-        return configFile;
-    }
-
     private ConfigFile configFile;
-
     private Lang.LangType langType;
+    private static EmergencyManager emergencyManager;
+    private static WorldManager worldManager;
+    private static TaskManager taskManager;
 
-    //世界註冊
-    private static Map<String, AbstractsWorld> emergencyTimeWorld = new HashMap<>();
-    private static Map<String, AbstractsWorld> emergencyDayWorld = new HashMap<>();
-    //時間週期的緊急事件註冊
-    private static Map<String, List<AbstractsEmergency>> emergencyTimeGroup = new HashMap<>();
-    //世界天數週期的緊急事件註冊
-    private static Map<String, List<AbstractsEmergency>> emergencyDayGroup = new HashMap<>();
-
-
-    //
-    private static final TaskManager taskManager = new TaskManager();
 
     public Emergency() {
     }
-
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -84,8 +64,7 @@ public final class Emergency extends JavaPlugin  {
         if (mythicMobs != null && mythicMobs.isEnabled()) {
             registerMythicMobsEvents();
         }
-
-
+        getServer().getPluginManager().registerEvents(this, this);
 
     }
 
@@ -95,6 +74,9 @@ public final class Emergency extends JavaPlugin  {
 
 
     public void initEssential() throws IOException {
+        emergencyManager = new EmergencyManager();
+        worldManager = new WorldManager();
+        taskManager = new TaskManager();
         File eventFolder = new File(getDataFolder(), "Event");
         File worldFolder = new File(getDataFolder(), "World");
         File langFolder = new File(getDataFolder(), "Lang");
@@ -112,16 +94,12 @@ public final class Emergency extends JavaPlugin  {
             FileUtils.copyResourceFolder(this, "Emergency/Lang", langFolder);
         }
 
-        //世界註冊
-        this.emergencyTimeWorld = new HashMap<>();
-        this.emergencyDayWorld = new HashMap<>();
-        //時間週期的緊急事件註冊
-        this.emergencyTimeGroup = new HashMap<>();
-        //世界天數週期的緊急事件註冊
-        this.emergencyDayGroup = new HashMap<>();
         this.lang = null;
+
         this.configFile = new ConfigFile("plugins/Emergency","Emergency/", "config.yml");
         this.lang = new Lang("plugins/Emergency/Lang", "Lang/", this.langType + ".yml");
+        this.worldManager.clear();
+        this.emergencyManager.clear();
         this.emergencyConfig = new EmergencyConfig("plugins/Emergency/Event");
         this.worldConfig = new WorldConfig("plugins/Emergency/World");
         Bukkit.getPluginCommand("emergency").setExecutor(new Commands());
@@ -133,8 +111,8 @@ public final class Emergency extends JavaPlugin  {
     public void onDisable() {
         // Plugin shutdown logic
         Emergency.this.getLogger().info(lang.pluginDisable);
-        WorldUtils.allWorldStop();
-        EmergencyUtils.allEmergencyStop();
+        worldManager.allWorldStop();
+        this.worldManager.allEmergencyStop();
     }
 
 
@@ -142,15 +120,14 @@ public final class Emergency extends JavaPlugin  {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         String worldName = event.getPlayer().getWorld().getName();
-        onJoinWorldEvents(emergencyDayWorld, worldName, event.getPlayer());
-        onJoinWorldEvents(emergencyTimeWorld, worldName, event.getPlayer());
+        onJoinWorldEvents(worldName, event.getPlayer());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         String worldName = event.getPlayer().getWorld().getName();
-        onQuitWorldEvents(emergencyDayWorld, worldName, event.getPlayer());
-        onQuitWorldEvents(emergencyTimeWorld, worldName, event.getPlayer());
+        onQuitWorldEvents(worldName, event.getPlayer());
+        onQuitWorldEvents( worldName, event.getPlayer());
     }
 
     @EventHandler
@@ -159,72 +136,56 @@ public final class Emergency extends JavaPlugin  {
         String fromWorldName = event.getFrom().getName();
         String toWorldName = player.getWorld().getName();
 
-        onQuitWorldEvents(emergencyDayWorld, fromWorldName, event.getPlayer());
-        onJoinWorldEvents(emergencyTimeWorld, fromWorldName, event.getPlayer());
+        onQuitWorldEvents(fromWorldName, event.getPlayer());
+        onJoinWorldEvents(fromWorldName, event.getPlayer());
 
-        onQuitWorldEvents(emergencyDayWorld, toWorldName, event.getPlayer());
-        onJoinWorldEvents(emergencyTimeWorld, toWorldName, event.getPlayer());
+        onQuitWorldEvents(toWorldName, event.getPlayer());
+        onJoinWorldEvents(toWorldName, event.getPlayer());
     }
 
-    private void onJoinWorldEvents(Map<String, AbstractsWorld> abstractsWorldMap, String worldName, Player player) {
-        if (abstractsWorldMap.containsKey(worldName)) {
-            List<AbstractsEmergency> worldEvents = abstractsWorldMap.get(worldName).getWorldEmergency();
-            if (worldEvents.isEmpty()) {
-                return;
-            }
-            for (AbstractsEmergency abstractsEmergency : worldEvents) {
+    private void onJoinWorldEvents( String worldName, Player player) {
+        if (! worldManager.getWorldNameList().contains(worldName)) {
+            return;
+        }
+        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
+           abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+            for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
                     bossBar.addPlayer(player);
-                    abstractsEmergency.OnJoinCommand(abstractsWorldMap.get(worldName),player);
+                    abstractsEmergency.OnJoinCommand(abstractsWorld,player);
                 }
             }
         }
     }
 
-    private void onQuitWorldEvents(Map<String, AbstractsWorld> abstractsWorldMap, String worldName, Player player) {
-        if (abstractsWorldMap.containsKey(worldName)) {
-            List<AbstractsEmergency> worldEvents = abstractsWorldMap.get(worldName).getWorldEmergency();
-            if (worldEvents.isEmpty()) {
-                return;
-            }
-            for (AbstractsEmergency abstractsEmergency : worldEvents) {
+    private void onQuitWorldEvents(String worldName, Player player) {
+        if (! worldManager.getWorldNameList().contains(worldName)) {
+            return;
+        }
+        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
+            abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+            for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
-                    bossBar.removePlayer(player);
-                    abstractsEmergency.OnQuitCommand(abstractsWorldMap.get(worldName),player);
+                    bossBar.addPlayer(player);
+                    abstractsEmergency.OnQuitCommand(abstractsWorld,player);
                 }
             }
         }
     }
 
     public void registerEmergency(AbstractsEmergency abstractsEmergency){
-        for (String g : abstractsEmergency.getGroup()) {
-            if(EmergencyUtils.findEmergencyByName(abstractsEmergency.getName()) != null){
-                emergency.info(emergency.getLang().duplicateEmergencyMessage+ abstractsEmergency.getName(), Level.SEVERE);
-                continue;
-            }
-            if (EmergencyUtils.checkForDuplicateGroup(abstractsEmergency)) {
-                emergency.info(emergency.getLang().duplicateGroupName + g, Level.SEVERE);
-                continue;
-            }
-            if (abstractsEmergency instanceof DayEmergency) {
-                emergencyDayGroup.computeIfAbsent(g, k -> new ArrayList<>()).add(abstractsEmergency);
-            }
-            if (abstractsEmergency instanceof TimeEmergency) {
-                emergencyTimeGroup.computeIfAbsent(g, k -> new ArrayList<>()).add(abstractsEmergency);
-            }
-        }
+        emergencyManager.add(abstractsEmergency);
     }
 
 
-    public void registerWorld(String name,List<String> dayGroup, List<String> timeGroup){
-        TimesWorld timesWorld = new TimesWorld(name, timeGroup);
-        DayWorld dayWorld = new DayWorld(name, dayGroup);
-        emergencyDayWorld.put(name,dayWorld);
-        emergencyTimeWorld.put(name,timesWorld);
-    }
 
+    public void registerWorld(AbstractsWorld abstractsWorld){
+        worldManager.add(abstractsWorld);
+    }
 
     public void info(String msg, Level level){
         getLogger().log(level,msg);
@@ -233,47 +194,28 @@ public final class Emergency extends JavaPlugin  {
 
     public String color(String msg){return msgUtils.msg(msg);}
     public List<String> color(List<String> msg){return msgUtils.msg(msg);}
-
-
     public static Emergency getInstance(){
         return emergency;
     }
-
-
     public Lang getLang() {
         return lang;
     }
-
-    public static Map<String, List<AbstractsEmergency>> getEmergencyTimeGroup() {
-        return Collections.unmodifiableMap(emergencyTimeGroup);
-    }
-
-    public static Map<String, List<AbstractsEmergency>> getEmergencyDayGroup() {
-        return Collections.unmodifiableMap(emergencyDayGroup);
-    }
-
-
-    public static Map<String, AbstractsWorld> getEmergencyTimeWorld() {
-        return emergencyTimeWorld;
-    }
-
-    public static Map<String, AbstractsWorld> getEmergencyDayWorld() {
-        return emergencyDayWorld;
-    }
-
     public void setLang(Lang lang) {
         this.lang = lang;
     }
-
-
     public void setLangType(Lang.LangType langType) {
         this.langType = langType;
     }
-
     public static TaskManager getTaskManager() {
         return taskManager;
     }
-
-
-
+    public static EmergencyManager getEmergencyManager() {
+        return emergencyManager;
+    }
+    public static WorldManager getWorldManager() {
+        return worldManager;
+    }
+    public ConfigFile getConfigFile() {
+        return configFile;
+    }
 }

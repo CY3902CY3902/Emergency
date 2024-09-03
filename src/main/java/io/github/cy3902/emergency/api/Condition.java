@@ -2,10 +2,12 @@ package io.github.cy3902.emergency.api;
 
 import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
+import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.conditions.IEntityCondition;
 import io.lumine.mythic.core.skills.conditions.CustomCondition;
+import org.bukkit.boss.BossBar;
 
 
 import java.util.*;
@@ -26,33 +28,23 @@ public class Condition extends CustomCondition implements IEntityCondition {
     @Override
     public boolean check(AbstractEntity abstractEntity){
         String world = abstractEntity.getWorld().getName();
-
-        if (Emergency.getEmergencyDayWorld() == null) {
+        Emergency emergency = Emergency.getInstance();
+        List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getWorldList();
+        if (abstractsWorldList == null){
             return false;
         }
 
-        if (Emergency.getEmergencyDayWorld().get(world) == null && Emergency.getEmergencyTimeWorld().get(world) == null){
-            return false;
-        }
 
-        List<AbstractsEmergency> dayWorldEmergencies = Emergency.getEmergencyDayWorld().get(world).getWorldEmergency();
-        List<AbstractsEmergency> timeWorldEmergencies = Emergency.getEmergencyTimeWorld().get(world).getWorldEmergency();
-
-        Set<String> eventNames = new HashSet<>();
-        if (dayWorldEmergencies != null) {
-            for (AbstractsEmergency emergency : dayWorldEmergencies) {
-                eventNames.add(emergency.getName());
+        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        for(AbstractsWorld abstractsWorld : abstractsWorldList) {
+            if(abstractsWorld.getWorld().getName() != world){
+                continue;
             }
-        }
-        if (timeWorldEmergencies != null) {
-            for (AbstractsEmergency emergency : timeWorldEmergencies) {
-                eventNames.add(emergency.getName());
-            }
-        }
-
-        // 檢查是否有任何指定的緊急事件名稱存在
-        for (String emergency : emergencies) {
-            if (eventNames.contains(emergency)) {
+            abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+            List<String> nameList = abstractsEmergencyList.stream()
+                    .map(AbstractsEmergency::getName)
+                    .collect(Collectors.toList());
+            if(!Collections.disjoint(nameList, emergencies)){
                 return true;
             }
         }

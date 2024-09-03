@@ -1,4 +1,4 @@
-package io.github.cy3902.emergency.task;
+package io.github.cy3902.emergency.manager;
 
 import io.github.cy3902.emergency.Emergency;
 import org.bukkit.Bukkit;

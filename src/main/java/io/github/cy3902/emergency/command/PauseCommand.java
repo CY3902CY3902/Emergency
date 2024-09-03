@@ -2,14 +2,15 @@ package io.github.cy3902.emergency.command;
 
 import io.github.cy3902.emergency.abstracts.AbstractsCommand;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.task.TaskManager;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
+import io.github.cy3902.emergency.manager.TaskManager;
 import io.github.cy3902.emergency.utils.WorldUtils;
 import org.bukkit.command.CommandSender;
 
+import javax.sound.sampled.LineUnavailableException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 public class PauseCommand extends AbstractsCommand {
     public PauseCommand() {
@@ -26,8 +27,7 @@ public class PauseCommand extends AbstractsCommand {
             return;
         }
 
-        List<AbstractsWorld> worlds = getWorldsToProcess(worldName);
-
+        List<AbstractsWorld> worlds = emergency.getWorldManager().getAllWorldByName(worldName);
         for (AbstractsWorld abstractsWorld : worlds) {
             processWorld(abstractsWorld, group, sender);
         }
@@ -42,14 +42,14 @@ public class PauseCommand extends AbstractsCommand {
 
         if (args.length == 2 && "pause".equalsIgnoreCase(args[0])) {
             return new CommandTabBuilder()
-                    .addTab(EmergencyUtils.getAllGroups(), 1, Arrays.asList("pause"), 0)
+                    .addTab(new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1, Arrays.asList("pause"), 0)
                     .build(args);
         }
 
         if (args.length == 3 && "pause".equalsIgnoreCase(args[0])) {
-
+            List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByGroup(args[1]);
             return new CommandTabBuilder()
-                    .addTab(WorldUtils.getAllWorldByGroup(args[1]), 2, EmergencyUtils.getAllGroups(), 1)
+                    .addTab(WorldUtils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
                     .build(args);
         }
 
@@ -73,10 +73,5 @@ public class PauseCommand extends AbstractsCommand {
     }
 
 
-    private List<AbstractsWorld> getWorldsToProcess(String worldName) {
-        return Arrays.asList(
-                emergency.getEmergencyTimeWorld().get(worldName),
-                emergency.getEmergencyDayWorld().get(worldName)
-        );
-    }
+
 }

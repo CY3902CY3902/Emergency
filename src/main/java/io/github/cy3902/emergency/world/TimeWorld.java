@@ -3,22 +3,23 @@ package io.github.cy3902.emergency.world;
 
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.task.TaskManager;
+import io.github.cy3902.emergency.manager.TaskManager;
 import io.github.cy3902.emergency.utils.EmergencyUtils;
 
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Level;
 
 
-public class TimesWorld extends AbstractsWorld {
+public class TimeWorld extends AbstractsWorld {
     //時間
     private PriorityQueue<Map.Entry<String, LocalDateTime>> eventQueue;
     private Map<String, LocalDateTime> groupTimeEnd = new HashMap<>();
     private Map<String, LocalDateTime> groupTimeStop = new HashMap<>();
 
-    public TimesWorld(String worldName, List<String> timeGroup) {
+    public TimeWorld(String worldName, List<String> timeGroup) {
         super( worldName);
         this.eventQueue = new PriorityQueue<>(Map.Entry.comparingByValue());
         for (String g : timeGroup) {
@@ -26,20 +27,20 @@ public class TimesWorld extends AbstractsWorld {
             groupTimeEnd.put(g,LocalDateTime.now());
             groupStates.put(g, TaskManager.TaskStatus.RUNNING);
         }
-        startTimesChangeChecker();
+        startTimeChangeChecker();
     }
 
 
-    private void startTimesChangeChecker() {
-        String taskId = "TimesChangeChecker-" + this.world.getName();
+    private void startTimeChangeChecker() {
+        String taskId = "TimeChangeChecker-" + this.world.getName();
 
-        Runnable timesChangeCheckerTask = () -> {
+        Runnable timeChangeCheckerTask = () -> {
             if (this.world != null) {
                 randomEmergency();
             }
         };
 
-        emergency.getTaskManager().startPeriodicTask(taskId, timesChangeCheckerTask, 0L, 20L);
+        emergency.getTaskManager().startPeriodicTask(taskId, timeChangeCheckerTask, 0L, 20L);
     }
 
     @Override
@@ -60,14 +61,14 @@ public class TimesWorld extends AbstractsWorld {
         LocalDateTime newTime = now.plusSeconds(abstractsEmergency.getDuration());
         addOrUpdateEvent(group, newTime);
         groupTimeEnd.put(group,newTime);
-        EmergencyUtils.earlyTimeStop(this,group);
+        emergency.getEmergencyManager().earlyStop(this,group);
         this.worldEmergency.add(abstractsEmergency);
         abstractsEmergency.start(this, group);
     }
 
 
     private AbstractsEmergency randomGroupEmergency(String g) {
-        List<AbstractsEmergency> emergencies = this.emergency.getEmergencyTimeGroup().get(g);
+        List<AbstractsEmergency> emergencies = this.emergency.getEmergencyManager().getAllEmergencyByGroup(g);
 
         if (emergencies == null || emergencies.isEmpty()) {
             return null;
@@ -109,6 +110,9 @@ public class TimesWorld extends AbstractsWorld {
 
     @Override
     public void pause(String group){
+        if (!groupTimeEnd.containsKey(group)) {
+            return;
+        }
         this.groupStates.put(group, TaskManager.TaskStatus.PAUSED);
         this.groupTimeStop.put(group, LocalDateTime.now());
         List<AbstractsEmergency> emergencies = this.getWorldEmergency();
@@ -120,6 +124,9 @@ public class TimesWorld extends AbstractsWorld {
     }
     @Override
     public void resume(String group){
+        if (!groupTimeStop.containsKey(group)) {
+            return;
+        }
         this.groupStates.put(group, TaskManager.TaskStatus.RUNNING);
         LocalDateTime stopLocalDateTime= this.groupTimeStop.get(group);
         LocalDateTime endLocalDateTime= this.groupTimeEnd.get(group);

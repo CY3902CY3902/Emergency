@@ -4,12 +4,9 @@ package io.github.cy3902.emergency.emergency;
 import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.task.TaskManager;
 import io.github.cy3902.emergency.utils.EmergencyUtils;
 import io.github.cy3902.emergency.world.DayWorld;
-import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -75,7 +72,7 @@ public class DayEmergency extends AbstractsEmergency {
                 }
 
                 if (world.getDay() >= world.getGroupDayEnd().get(group)) {
-                    EmergencyUtils.earlyDayStop(world, group);
+                    emergency.getEmergencyManager().earlyStop(world, group);
                 }
             }
         };

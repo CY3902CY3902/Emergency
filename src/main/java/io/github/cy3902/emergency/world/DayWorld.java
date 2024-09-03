@@ -3,13 +3,10 @@ package io.github.cy3902.emergency.world;
 
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.task.TaskManager;
+import io.github.cy3902.emergency.manager.TaskManager;
 import io.github.cy3902.emergency.utils.EmergencyUtils;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.logging.Level;
 
 public class DayWorld extends AbstractsWorld {
     private long lastTime;
@@ -31,6 +28,7 @@ public class DayWorld extends AbstractsWorld {
         }
         startDayChangeChecker();
     }
+
 
     // 計時器(day)
     private void startDayChangeChecker() {
@@ -65,14 +63,14 @@ public class DayWorld extends AbstractsWorld {
 
     public void startEmergency(String group,  AbstractsEmergency abstractsEmergency){
         addOrUpdateEvent(group, this.day + abstractsEmergency.getDays());
-        EmergencyUtils.earlyDayStop(this,group);
+        emergency.getEmergencyManager().earlyStop(this, group);
         groupDayEnd.put(group,this.day + abstractsEmergency.getDays());
         this.worldEmergency.add(abstractsEmergency);
         abstractsEmergency.start(this, group);
     }
 
     private AbstractsEmergency randomGroupEmergency(String g) {
-        List<AbstractsEmergency> emergencies = this.emergency.getEmergencyDayGroup().get(g);
+        List<AbstractsEmergency> emergencies = this.emergency.getEmergencyManager().getAllEmergencyByGroup(g);
 
         if (emergencies == null || emergencies.isEmpty()) {
             return null;
@@ -116,6 +114,9 @@ public class DayWorld extends AbstractsWorld {
     }
 
     public void pause(String group){
+        if (!groupDayEnd.containsKey(group)) {
+            return;
+        }
         this.groupStates.put(group, TaskManager.TaskStatus.PAUSED);
         this.groupDayStop.put(group, this.day);
         List<AbstractsEmergency> emergencies = this.getWorldEmergency();
@@ -127,6 +128,9 @@ public class DayWorld extends AbstractsWorld {
     }
 
     public void resume(String group){
+        if (!groupDayStop.containsKey(group)) {
+            return;
+        }
         this.groupStates.put(group, TaskManager.TaskStatus.RUNNING);
         int stopDay= this.groupDayStop.get(group);
         int endDay = this.groupDayEnd.get(group);

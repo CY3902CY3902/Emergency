@@ -1,7 +1,6 @@
 package io.github.cy3902.emergency.abstracts;
 
 import io.github.cy3902.emergency.Emergency;
-import io.github.cy3902.emergency.interfaces.EmergencyController;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
@@ -13,7 +12,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
-public abstract class AbstractsEmergency implements EmergencyController {
+public abstract class AbstractsEmergency {
     protected Emergency emergency;
     protected String name;
     protected List<String> startCommand;
@@ -155,24 +154,24 @@ public abstract class AbstractsEmergency implements EmergencyController {
         this.name = name;
     }
 
-    @Override
+
     public void start(AbstractsWorld world, String group) {
     }
 
 
-    @Override
+
     public void stop(AbstractsWorld world, String group) {
     }
 
-    @Override
+
     public void pause(AbstractsWorld world, String group) {
     }
 
-    @Override
+
     public void resume(AbstractsWorld world, String group) {
     }
 
-    @Override
+
     public void createBossBar(AbstractsWorld world) {
         if (this.bossBarBool == true) {
             for (Player player : world.getWorld().getPlayers()) {
@@ -181,7 +180,7 @@ public abstract class AbstractsEmergency implements EmergencyController {
         }
     }
 
-    @Override
+
     public void removeBossBar(AbstractsWorld world) {
         if (this.bossBarBool == true) {
             for (Player player : world.getWorld().getPlayers()) {

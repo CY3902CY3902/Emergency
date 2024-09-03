@@ -19,8 +19,8 @@ public class ReloadCommand extends AbstractsCommand {
     @Override
     public void handle(CommandSender sender, String[] args) {
         try {
-            WorldUtils.allWorldStop();
-            EmergencyUtils.allEmergencyStop();
+            emergency.getWorldManager().allWorldStop();
+            emergency.getWorldManager().allEmergencyStop();
             emergency.initEssential();
             sender.sendMessage(lang.plugin + lang.reload);
         }catch (Exception e){

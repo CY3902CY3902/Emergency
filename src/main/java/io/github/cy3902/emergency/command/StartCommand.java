@@ -5,13 +5,15 @@ import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.emergency.TimeEmergency;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
 import io.github.cy3902.emergency.utils.WorldUtils;
+import io.github.cy3902.emergency.world.DayWorld;
+import io.github.cy3902.emergency.world.TimeWorld;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class StartCommand extends AbstractsCommand {
@@ -27,7 +29,7 @@ public class StartCommand extends AbstractsCommand {
             return;
         }
 
-        AbstractsEmergency abstractsEmergency = EmergencyUtils.findEmergencyByName(args[2]);
+        AbstractsEmergency abstractsEmergency = emergency.getEmergencyManager().findEmergencyByName(args[2]);
         if (abstractsEmergency == null) {
             sender.sendMessage(lang.plugin + lang.emergencyNotFoundMessage + args[2]);
             return;
@@ -49,12 +51,12 @@ public class StartCommand extends AbstractsCommand {
 
         if (args.length == 2) {
             return new CommandTabBuilder()
-                    .addTab(EmergencyUtils.getAllGroups(), 1, Arrays.asList("start"), 0)
+                    .addTab(new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1, Arrays.asList("start"), 0)
                     .build(args);
         }
 
         if (args.length == 3 && "start".equalsIgnoreCase(args[0])) {
-            List<AbstractsEmergency> abstractsEmergencies = EmergencyUtils.getAllEmergencyByGroup(args[1]);
+            List<AbstractsEmergency> abstractsEmergencies = emergency.getEmergencyManager().getAllEmergencyByGroup(args[1]);
             if (abstractsEmergencies.isEmpty()) {
                 return suggestions;
             }
@@ -64,13 +66,12 @@ public class StartCommand extends AbstractsCommand {
                     .collect(Collectors.toList());
 
             return new CommandTabBuilder()
-                    .addTab(abstractsEmergenceNames, 2, EmergencyUtils.getAllGroups(), 1)
+                    .addTab(abstractsEmergenceNames, 2,new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
                     .build(args);
         }
         if (args.length == 4 && "start".equalsIgnoreCase(args[0])) {
-
             return new CommandTabBuilder()
-                    .addTab(WorldUtils.getAllWorld(), 3, EmergencyUtils.getAllGroups(), 1)
+                    .addTab(emergency.getWorldManager().getWorldNameList(), 3, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
                     .build(args);
         }
 
@@ -78,10 +79,14 @@ public class StartCommand extends AbstractsCommand {
     }
 
     private AbstractsWorld getCorrespondingWorld(AbstractsEmergency abstractsEmergency, String worldName) {
-        if (abstractsEmergency instanceof TimeEmergency) {
-            return emergency.getEmergencyTimeWorld().get(worldName);
-        } else if (abstractsEmergency instanceof DayEmergency) {
-            return emergency.getEmergencyDayWorld().get(worldName);
+        List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByName(worldName);
+        for(AbstractsWorld abstractsWorld : abstractsWorldList){
+            if(abstractsWorld instanceof TimeWorld && abstractsEmergency instanceof TimeEmergency){
+                return  abstractsWorld;
+            }
+            if(abstractsWorld instanceof DayWorld && abstractsEmergency instanceof DayEmergency){
+                return  abstractsWorld;
+            }
         }
         return null;
     }

@@ -1,29 +1,46 @@
 test:
   group:
-  - test
+    - test
+  # Chance for the event to trigger (if greater than 1, it will be forced back to between 0 and 1)
   chance: 0.3
+  # Day or Time, two options
   type: Time
+  # Days (if the event lasts multiple days, only effective when type=Day)
   days: 0
+  # Duration (event duration in seconds, only effective when type=Time)
   duration: 10
+  # BossBar countdown during the event
   BossBar:
+    # Enable or disable BossBar countdown
     enable: true
+    # BossBar color
     color: RED
+    # BossBar title
     title: test
+    # BossBar style
     bar_style: SOLID
+  # Commands executed when the event starts
   start_command:
     - give %online_player% apple
+  # Commands executed when the event ends
   end_command:
     - give %player_in_world% apple
+  # Commands executed when a player joins the event
   on_join_command:
     - give %player% apple
+  # Commands executed when a player leaves the event
   on_quit_command:
     - give %player% apple
+
 normal:
   group:
     - test
+  # Chance for the event to trigger
   chance: 0.7
+  # Day or Time, two options
   type: Time
   days: 0
   duration: 10
   BossBar:
+    # Enable or disable BossBar countdown
     enable: false

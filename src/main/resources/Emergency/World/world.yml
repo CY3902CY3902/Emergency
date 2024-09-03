@@ -1,5 +1,8 @@
 world:
+  # World name
   day_group:
+    # Group that contains events with type=Day
     - daytest
   time_group:
+    # Group that contains events with type=Time
     - test
