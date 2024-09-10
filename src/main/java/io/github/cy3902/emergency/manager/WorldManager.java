@@ -1,15 +1,14 @@
 package io.github.cy3902.emergency.manager;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+;
 import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.world.DayWorld;
 import io.github.cy3902.emergency.world.TimeWorld;
 
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -28,6 +27,28 @@ public class WorldManager {
             }
         }
     }
+
+    public static void allRunningEmergencySave() {
+        emergency.getSql().clearTables("day_world");
+        emergency.getSql().clearTables("time_world");
+        emergency.getSql().connect();
+        try (Connection conn = emergency.getSql().getConnection()) {
+            conn.setAutoCommit(false);
+            for (AbstractsWorld world : worldList) {
+                if (world instanceof DayWorld) {
+                    emergency.getDayWorldDAO().saveDayWorld((DayWorld) world, conn);
+                } else if (world instanceof TimeWorld) {
+                    emergency.getTimeWorldDAO().saveTimeWorld((TimeWorld) world, conn);
+                }
+            }
+
+            conn.commit();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static void allEmergencyPause() {
         for (AbstractsWorld abstractsWorld : worldList) {
@@ -52,6 +73,7 @@ public class WorldManager {
                 .collect(Collectors.toSet());
         return new ArrayList<>(nameSet);
     }
+
 
     public static void allWorldStop() {
         for(AbstractsWorld world : worldList){
@@ -97,4 +119,9 @@ public class WorldManager {
     public static List<AbstractsWorld> getWorldList() {
         return worldList;
     }
+
+
+
+
+
 }

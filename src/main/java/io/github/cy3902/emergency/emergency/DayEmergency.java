@@ -4,7 +4,6 @@ package io.github.cy3902.emergency.emergency;
 import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
 import io.github.cy3902.emergency.world.DayWorld;
 import org.bukkit.boss.BossBar;
 
@@ -42,7 +41,6 @@ public class DayEmergency extends AbstractsEmergency {
     }
 
 
-
     @Override
     public void start(AbstractsWorld abstractsWorld, String group) {
         if (abstractsWorld == null) {
@@ -57,16 +55,17 @@ public class DayEmergency extends AbstractsEmergency {
 
 
 
+
     protected void delayDayAndStop(DayWorld world, String group) {
         String taskId = "task-" + group + "-" + world.getWorld().getName();
 
         Runnable taskRunnable = new Runnable() {
             @Override
             public void run() {
-                long currentTime = world.getWorld().getFullTime();
-                double totalTime = 1200 * 20;
+                int daysRemaining  = world.getGroupDayEnd().get(group) - world.getDay();
+                long currentTime = world.getWorld().getFullTime()%(1200*20) + (days - daysRemaining ) * 1200*20;
+                double totalTime = 1200 * 20* days;
                 double progress = Math.max(0.0, 1.0 - (currentTime % totalTime) / totalTime);
-
                 if (bossBar != null) {
                     bossBar.setProgress(progress);
                 }

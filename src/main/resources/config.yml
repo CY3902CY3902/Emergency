@@ -1,2 +1,18 @@
-# Selected language (zh_TW, en_US )
+# Selected language (zh_TW, en_US)
 language: zh_TW
+
+database:
+  # Choose the type of database: sqlite or mysql
+  type: sqlite
+
+  # SQLite settings
+  sqlite:
+    file_path: 'plugins/Emergency/SQL/emergency.db'
+
+  # MySQL settings
+  mysql:
+    host: 'localhost'
+    port: 3306
+    database: 'emergencydb'
+    username: 'your_username'
+    password: 'your_password'

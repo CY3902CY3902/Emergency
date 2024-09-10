@@ -5,6 +5,7 @@ import io.github.cy3902.emergency.manager.TaskManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -16,7 +17,7 @@ public abstract class AbstractsWorld{
     protected final Emergency emergency;
     protected World world;
     protected int day;
-    protected List<AbstractsEmergency> worldEmergency = new ArrayList<>();
+    protected Map<String, AbstractsEmergency> worldEmergency = new HashMap<>();
     protected Map<String, TaskManager.TaskStatus> groupStates = new HashMap<>();
 
 
@@ -34,7 +35,7 @@ public abstract class AbstractsWorld{
 
 
 
-    public void randomEmergency(){};
+    public void randomEmergency() throws SQLException {};
 
 
     public void startEmergency(String group,  AbstractsEmergency abstractsEmergency){}
@@ -57,13 +58,10 @@ public abstract class AbstractsWorld{
     }
 
 
-    public List<AbstractsEmergency> getWorldEmergency() {
+    public Map<String, AbstractsEmergency> getWorldEmergency() {
         return worldEmergency;
     }
 
-    public void setWorldEmergency(List<AbstractsEmergency> worldEmergency) {
-        this.worldEmergency = worldEmergency;
-    }
 
     public Map<String, TaskManager.TaskStatus> getGroupStates() {
         return groupStates;

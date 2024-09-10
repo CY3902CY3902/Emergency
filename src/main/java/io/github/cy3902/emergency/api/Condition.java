@@ -35,12 +35,12 @@ public class Condition extends CustomCondition implements IEntityCondition {
         }
 
 
-        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        Set<AbstractsEmergency> abstractsEmergencyList;
         for(AbstractsWorld abstractsWorld : abstractsWorldList) {
             if(abstractsWorld.getWorld().getName() != world){
                 continue;
             }
-            abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+            abstractsEmergencyList = new HashSet<>(abstractsWorld.getWorldEmergency().values());
             List<String> nameList = abstractsEmergencyList.stream()
                     .map(AbstractsEmergency::getName)
                     .collect(Collectors.toList());

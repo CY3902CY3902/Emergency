@@ -1,12 +1,18 @@
 package io.github.cy3902.emergency.world;
 
 
+import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
+import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.manager.TaskManager;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 
 public class DayWorld extends AbstractsWorld {
     private long lastTime;
@@ -15,16 +21,20 @@ public class DayWorld extends AbstractsWorld {
     private PriorityQueue<Map.Entry<String, Integer>> eventQueue;
     private Map<String, Integer> groupDayEnd = new HashMap<>();
     private Map<String, Integer> groupDayStop = new HashMap<>();
+    private Emergency emergency = Emergency.getInstance();
 
 
     public DayWorld(String worldName, List<String> dayGroup) {
         super( worldName);
         this.lastTime = this.world.getTime();
         this.eventQueue = new PriorityQueue<>(Map.Entry.comparingByValue());
+        loadEmergencySafely();
         for (String g : dayGroup) {
-            eventQueue.add(new AbstractMap.SimpleEntry<>(g, this.day));
-            groupDayEnd.put(g, this.day);
-            groupStates.put(g, TaskManager.TaskStatus.RUNNING);
+            if(!groupDayEnd.containsKey(g)){
+                groupDayEnd.put(g, this.day);
+                groupStates.put(g, TaskManager.TaskStatus.RUNNING);
+                eventQueue.add(new AbstractMap.SimpleEntry<>(g, this.day));
+            }
         }
         startDayChangeChecker();
     }
@@ -33,19 +43,28 @@ public class DayWorld extends AbstractsWorld {
     // 計時器(day)
     private void startDayChangeChecker() {
         String taskId = "DayChangeChecker-" + this.world.getName();
-        Runnable dayChangeCheckerTask = () -> {
-            if (this.world != null) {
-                long currentTime = this.world.getTime();
+        emergency.getTaskManager().startPeriodicTask(taskId, this::checkDayChange, 0L, 5L);
+    }
 
-                if (currentTime < this.lastTime) {
-                    day++;
-                    randomEmergency();
-                }
+    private void checkDayChange() {
+        if (this.world == null) return;
 
-                this.lastTime = currentTime;
-            }
-        };
-        emergency.getTaskManager().startPeriodicTask(taskId, dayChangeCheckerTask, 0L, 20L);
+        long currentTime = this.world.getTime();
+
+        if (currentTime < this.lastTime) {
+            day++;
+            randomEmergency();
+        }
+
+        this.lastTime = currentTime;
+    }
+
+    private void loadEmergencySafely() {
+        try {
+            emergency.getDayWorldDAO().loadEmergency(this);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -62,10 +81,13 @@ public class DayWorld extends AbstractsWorld {
     }
 
     public void startEmergency(String group,  AbstractsEmergency abstractsEmergency){
+        if(!emergency.getEmergencyManager().getAllEmergencyByGroup(group).contains(abstractsEmergency)){
+            return;
+        }
         addOrUpdateEvent(group, this.day + abstractsEmergency.getDays());
         emergency.getEmergencyManager().earlyStop(this, group);
         groupDayEnd.put(group,this.day + abstractsEmergency.getDays());
-        this.worldEmergency.add(abstractsEmergency);
+        this.worldEmergency.put(group,abstractsEmergency);
         abstractsEmergency.start(this, group);
     }
 
@@ -119,7 +141,7 @@ public class DayWorld extends AbstractsWorld {
         }
         this.groupStates.put(group, TaskManager.TaskStatus.PAUSED);
         this.groupDayStop.put(group, this.day);
-        List<AbstractsEmergency> emergencies = this.getWorldEmergency();
+        HashSet<AbstractsEmergency> emergencies = new HashSet<>(this.getWorldEmergency().values());
         for (AbstractsEmergency emergency : emergencies) {
             if (emergency.getGroup().contains(group)) {
                 emergency.pause(this, group);
@@ -137,7 +159,7 @@ public class DayWorld extends AbstractsWorld {
         int betweenDay = endDay-stopDay;
         int groupDayEnd = this.day+betweenDay;
         addOrUpdateEvent(group,groupDayEnd);
-        List<AbstractsEmergency> emergencies = this.worldEmergency;
+        List<AbstractsEmergency> emergencies =  new ArrayList<>(worldEmergency.values());
         for (AbstractsEmergency emergency : emergencies) {
             if (emergency.getGroup().contains(group)) {
                 emergency.resume(this, group);
@@ -148,4 +170,6 @@ public class DayWorld extends AbstractsWorld {
     public Map<String, Integer> getGroupDayEnd() {
         return groupDayEnd;
     }
+
+
 }

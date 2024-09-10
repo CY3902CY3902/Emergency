@@ -3,11 +3,11 @@ package io.github.cy3902.emergency.command;
 
 import io.github.cy3902.emergency.abstracts.AbstractsCommand;
 
-import io.github.cy3902.emergency.utils.EmergencyUtils;
-import io.github.cy3902.emergency.utils.WorldUtils;
 import org.bukkit.command.CommandSender;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
 
 public class ReloadCommand extends AbstractsCommand {
 
@@ -21,6 +21,8 @@ public class ReloadCommand extends AbstractsCommand {
         try {
             emergency.getWorldManager().allWorldStop();
             emergency.getWorldManager().allEmergencyStop();
+            emergency.getWorldManager().allRunningEmergencySave();
+            emergency.getShutdownDAO().saveShutdownTime(LocalDateTime.now());
             emergency.initEssential();
             sender.sendMessage(lang.plugin + lang.reload);
         }catch (Exception e){

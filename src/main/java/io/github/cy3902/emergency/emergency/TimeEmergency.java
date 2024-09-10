@@ -1,11 +1,13 @@
 package io.github.cy3902.emergency.emergency;
 
+
 import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
+import io.github.cy3902.emergency.utils.Utils;
 import io.github.cy3902.emergency.world.TimeWorld;
 import org.bukkit.boss.BossBar;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,7 +44,6 @@ public class TimeEmergency extends AbstractsEmergency{
     }
 
 
-
     @Override
     public void start(AbstractsWorld abstractsWorld, String group) {
         if (abstractsWorld == null) {
@@ -50,25 +51,30 @@ public class TimeEmergency extends AbstractsEmergency{
             return;
         }
         TimeWorld timeWorld = (TimeWorld) abstractsWorld;
-        delayTimeAndStop(timeWorld, group);
+        delayTimeAndStop(timeWorld, group, duration);
         createBossBar(abstractsWorld);
         startCommand(abstractsWorld);
     }
 
+    public void start(TimeWorld timeWorld, String group, long duration) {
+        if (timeWorld == null) {
+            this.emergency.info(emergency.getLang().worldNotFoundMessage + timeWorld.getWorld().getName() , Level.SEVERE);
+            return;
+        }
+        delayTimeAndStop(timeWorld, group, duration);
+        createBossBar(timeWorld);
+        startCommand(timeWorld);
+    }
 
-    protected void delayTimeAndStop(TimeWorld world, String group) {
-        long d = this.duration;
+
+    protected void delayTimeAndStop(TimeWorld world, String group, long durationRemaining) {
         String taskId = "task-" + group + "-" + world.getWorld().getName();
         Runnable taskRunnable = new Runnable() {
-            double progress = 1.0;
-            long totalDurationInSeconds = d * 20L;
-            long updateInterval = 20L;
-            double progressDecreasePerTime = 1.0 / (totalDurationInSeconds / updateInterval);
-
+            double progress =  Utils.calculateSecondsBetween(LocalDateTime.now(),world.getGroupTimeEnd().get(group)) / duration;
             @Override
             public void run() {
                 LocalDateTime time = LocalDateTime.now();
-
+                double remaining =  (double)  Utils.calculateSecondsBetween(LocalDateTime.now(),world.getGroupTimeEnd().get(group)) / duration;
                 if (time.isAfter(world.getGroupTimeEnd().get(group)) || time.isEqual(world.getGroupTimeEnd().get(group))) {
                     if (bossBar != null) {
                         bossBar.setProgress(0);
@@ -78,7 +84,7 @@ public class TimeEmergency extends AbstractsEmergency{
                     if (bossBar != null) {
                         bossBar.setProgress(progress);
                     }
-                    progress = Math.max(0.0, progress - progressDecreasePerTime);
+                    progress = Math.max(0.0, remaining);
                 }
             }
         };

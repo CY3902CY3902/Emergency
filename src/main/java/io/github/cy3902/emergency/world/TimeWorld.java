@@ -1,16 +1,18 @@
 package io.github.cy3902.emergency.world;
 
 
+import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
+import io.github.cy3902.emergency.emergency.TimeEmergency;
 import io.github.cy3902.emergency.manager.TaskManager;
-import io.github.cy3902.emergency.utils.EmergencyUtils;
+import io.github.cy3902.emergency.utils.Utils;
 
 
+import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.logging.Level;
 
 
 public class TimeWorld extends AbstractsWorld {
@@ -18,29 +20,41 @@ public class TimeWorld extends AbstractsWorld {
     private PriorityQueue<Map.Entry<String, LocalDateTime>> eventQueue;
     private Map<String, LocalDateTime> groupTimeEnd = new HashMap<>();
     private Map<String, LocalDateTime> groupTimeStop = new HashMap<>();
+    private Emergency emergency = Emergency.getInstance();
 
     public TimeWorld(String worldName, List<String> timeGroup) {
         super( worldName);
         this.eventQueue = new PriorityQueue<>(Map.Entry.comparingByValue());
+        loadEmergencySafely();
         for (String g : timeGroup) {
-            eventQueue.add(new AbstractMap.SimpleEntry<>(g, LocalDateTime.now()));
-            groupTimeEnd.put(g,LocalDateTime.now());
-            groupStates.put(g, TaskManager.TaskStatus.RUNNING);
+            if(!groupTimeEnd.containsKey(g)){
+                groupTimeEnd.put(g,LocalDateTime.now());
+                groupStates.put(g, TaskManager.TaskStatus.RUNNING);
+                eventQueue.add(new AbstractMap.SimpleEntry<>(g, LocalDateTime.now()));
+            }
         }
         startTimeChangeChecker();
     }
 
 
+    // 計時器(Time)
     private void startTimeChangeChecker() {
         String taskId = "TimeChangeChecker-" + this.world.getName();
+        emergency.getTaskManager().startPeriodicTask(taskId, this::checkTimeChange, 0L, 5L);
+    }
 
-        Runnable timeChangeCheckerTask = () -> {
-            if (this.world != null) {
-                randomEmergency();
-            }
-        };
+    private void checkTimeChange() {
+        if (this.world == null) return;
+        randomEmergency();
+    }
 
-        emergency.getTaskManager().startPeriodicTask(taskId, timeChangeCheckerTask, 0L, 20L);
+
+    private void loadEmergencySafely() {
+        try {
+            emergency.getTimeWorldDAO().loadEmergency(this);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -57,12 +71,15 @@ public class TimeWorld extends AbstractsWorld {
 
     @Override
     public void startEmergency(String group,  AbstractsEmergency abstractsEmergency){
+        if(!emergency.getEmergencyManager().getAllEmergencyByGroup(group).contains(abstractsEmergency)){
+            return;
+        }
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime newTime = now.plusSeconds(abstractsEmergency.getDuration());
         addOrUpdateEvent(group, newTime);
         groupTimeEnd.put(group,newTime);
         emergency.getEmergencyManager().earlyStop(this,group);
-        this.worldEmergency.add(abstractsEmergency);
+        this.worldEmergency.put(group,abstractsEmergency);
         abstractsEmergency.start(this, group);
     }
 
@@ -115,7 +132,7 @@ public class TimeWorld extends AbstractsWorld {
         }
         this.groupStates.put(group, TaskManager.TaskStatus.PAUSED);
         this.groupTimeStop.put(group, LocalDateTime.now());
-        List<AbstractsEmergency> emergencies = this.getWorldEmergency();
+        HashSet<AbstractsEmergency> emergencies = new HashSet<>(this.getWorldEmergency().values());
         for (AbstractsEmergency emergency : emergencies) {
             if (emergency.getGroup().contains(group)) {
                 emergency.pause(this, group);
@@ -133,7 +150,7 @@ public class TimeWorld extends AbstractsWorld {
         Duration duration = Duration.between(stopLocalDateTime, endLocalDateTime);
         LocalDateTime result = LocalDateTime.now().plus(duration);
         addOrUpdateEvent(group,result);
-        List<AbstractsEmergency> emergencies = this.worldEmergency;
+        List<AbstractsEmergency> emergencies = new ArrayList<>(this.worldEmergency.values());
         for (AbstractsEmergency emergency : emergencies) {
             if (emergency.getGroup().contains(group)) {
                 emergency.resume(this, group);

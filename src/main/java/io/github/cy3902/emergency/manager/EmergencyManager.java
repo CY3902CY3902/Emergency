@@ -27,7 +27,7 @@ public class EmergencyManager {
 
         //搜尋事件
         for (AbstractsEmergency emergency : emergencies) {
-            if (abstractsWorld.getWorldEmergency().contains(emergency)) {
+            if (new ArrayList<>(abstractsWorld.getWorldEmergency().values()).contains(emergency)) {
                 abstractsEmergency = emergency;
             }
         }

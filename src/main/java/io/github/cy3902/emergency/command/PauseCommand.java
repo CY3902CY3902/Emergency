@@ -3,14 +3,12 @@ package io.github.cy3902.emergency.command;
 import io.github.cy3902.emergency.abstracts.AbstractsCommand;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.manager.TaskManager;
-import io.github.cy3902.emergency.utils.WorldUtils;
+import io.github.cy3902.emergency.utils.Utils;
 import org.bukkit.command.CommandSender;
 
-import javax.sound.sampled.LineUnavailableException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 
 public class PauseCommand extends AbstractsCommand {
     public PauseCommand() {
@@ -49,7 +47,7 @@ public class PauseCommand extends AbstractsCommand {
         if (args.length == 3 && "pause".equalsIgnoreCase(args[0])) {
             List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByGroup(args[1]);
             return new CommandTabBuilder()
-                    .addTab(WorldUtils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
+                    .addTab(Utils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
                     .build(args);
         }
 

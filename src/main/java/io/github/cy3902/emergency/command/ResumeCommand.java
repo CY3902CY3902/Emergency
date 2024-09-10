@@ -6,7 +6,7 @@ import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.emergency.TimeEmergency;
 import io.github.cy3902.emergency.manager.TaskManager;
-import io.github.cy3902.emergency.utils.WorldUtils;
+import io.github.cy3902.emergency.utils.Utils;
 import io.github.cy3902.emergency.world.DayWorld;
 import io.github.cy3902.emergency.world.TimeWorld;
 import org.bukkit.command.CommandSender;
@@ -53,7 +53,7 @@ public class ResumeCommand extends AbstractsCommand {
         if (args.length == 3 && "resume".equalsIgnoreCase(args[0])) {
             List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByGroup(args[1]);
             return new CommandTabBuilder()
-                    .addTab(WorldUtils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
+                    .addTab(Utils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
                     .build(args);
         }
 

@@ -155,21 +155,19 @@ public abstract class AbstractsEmergency {
     }
 
 
-    public void start(AbstractsWorld world, String group) {
-    }
+    public abstract void start(AbstractsWorld world, String group);
 
 
 
-    public void stop(AbstractsWorld world, String group) {
-    }
+    public abstract void stop(AbstractsWorld world, String group);
 
 
-    public void pause(AbstractsWorld world, String group) {
-    }
+
+    public abstract void pause(AbstractsWorld world, String group);
 
 
-    public void resume(AbstractsWorld world, String group) {
-    }
+
+    public abstract void resume(AbstractsWorld world, String group);
 
 
     public void createBossBar(AbstractsWorld world) {

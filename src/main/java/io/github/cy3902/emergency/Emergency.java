@@ -1,9 +1,13 @@
 package io.github.cy3902.emergency;
 
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
+import io.github.cy3902.emergency.abstracts.AbstractsSQL;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.api.MythicMobsEventListener;
 import io.github.cy3902.emergency.command.Commands;
+import io.github.cy3902.emergency.dao.DayWorldDAO;
+import io.github.cy3902.emergency.dao.ShutdownDAO;
+import io.github.cy3902.emergency.dao.TimeWorldDAO;
 import io.github.cy3902.emergency.files.ConfigFile;
 import io.github.cy3902.emergency.files.EmergencyConfig;
 import io.github.cy3902.emergency.files.Lang;
@@ -29,6 +33,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -38,15 +43,28 @@ public final class Emergency extends JavaPlugin implements Listener {
     private MsgUtils msgUtils = new MsgUtils(this);
 
     private static Emergency emergency;
-    private Lang lang;
-    private EmergencyConfig emergencyConfig ;
-    private WorldConfig worldConfig;
-    private ConfigFile configFile;
-    private Lang.LangType langType;
+
+
+    private static Lang lang;
+    private static String DATABASE_URL;
+    private static Lang.LangType langType;
+
+    private static EmergencyConfig emergencyConfig ;
+    private static WorldConfig worldConfig;
+    private static ConfigFile configFile;
+
     private static EmergencyManager emergencyManager;
     private static WorldManager worldManager;
     private static TaskManager taskManager;
 
+    private static AbstractsSQL sql;
+    private static LocalDateTime lastShutdownTime;
+
+
+    private static ShutdownDAO shutdownDAO;
+
+    private static DayWorldDAO dayWorldDAO;
+    private static TimeWorldDAO timeWorldDAO;
 
     public Emergency() {
     }
@@ -65,7 +83,6 @@ public final class Emergency extends JavaPlugin implements Listener {
             registerMythicMobsEvents();
         }
         getServer().getPluginManager().registerEvents(this, this);
-
     }
 
     private void registerMythicMobsEvents() {
@@ -80,7 +97,7 @@ public final class Emergency extends JavaPlugin implements Listener {
         File eventFolder = new File(getDataFolder(), "Event");
         File worldFolder = new File(getDataFolder(), "World");
         File langFolder = new File(getDataFolder(), "Lang");
-
+        File sqlFolder = new File(getDataFolder(), "SQL");
         if (!eventFolder.exists()) {
             eventFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "Emergency/Event", eventFolder);
@@ -93,11 +110,17 @@ public final class Emergency extends JavaPlugin implements Listener {
             langFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "Emergency/Lang", langFolder);
         }
-
+        if (!sqlFolder.exists()) {
+            sqlFolder.mkdirs();
+        }
         this.lang = null;
 
         this.configFile = new ConfigFile("plugins/Emergency","Emergency/", "config.yml");
+        this.shutdownDAO = new ShutdownDAO(sql);
+        this.dayWorldDAO = new DayWorldDAO(sql);
+        this.timeWorldDAO = new TimeWorldDAO(sql);
         this.lang = new Lang("plugins/Emergency/Lang", "Lang/", this.langType + ".yml");
+        this.lastShutdownTime =  shutdownDAO.readLastShutdownTime();
         this.worldManager.clear();
         this.emergencyManager.clear();
         this.emergencyConfig = new EmergencyConfig("plugins/Emergency/Event");
@@ -111,10 +134,13 @@ public final class Emergency extends JavaPlugin implements Listener {
     public void onDisable() {
         // Plugin shutdown logic
         Emergency.this.getLogger().info(lang.pluginDisable);
-        worldManager.allWorldStop();
-        this.worldManager.allEmergencyStop();
+        LocalDateTime shutdownTime = LocalDateTime.now();
+        worldManager.allWorldPause();
+        worldManager.allEmergencyStop();
+        worldManager.allRunningEmergencySave();
+        shutdownDAO.saveShutdownTime(shutdownTime);
+        sql.close();
     }
-
 
 
     @EventHandler
@@ -147,9 +173,9 @@ public final class Emergency extends JavaPlugin implements Listener {
         if (! worldManager.getWorldNameList().contains(worldName)) {
             return;
         }
-        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        Set<AbstractsEmergency> abstractsEmergencyList;
         for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
-           abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+           abstractsEmergencyList =  new HashSet<>(abstractsWorld.getWorldEmergency().values());
             for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
@@ -164,9 +190,9 @@ public final class Emergency extends JavaPlugin implements Listener {
         if (! worldManager.getWorldNameList().contains(worldName)) {
             return;
         }
-        List<AbstractsEmergency> abstractsEmergencyList = new ArrayList<>();
+        Set<AbstractsEmergency> abstractsEmergencyList;
         for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
-            abstractsEmergencyList = abstractsWorld.getWorldEmergency();
+            abstractsEmergencyList = new HashSet<>(abstractsWorld.getWorldEmergency().values());
             for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
@@ -192,30 +218,103 @@ public final class Emergency extends JavaPlugin implements Listener {
     }
 
 
+
     public String color(String msg){return msgUtils.msg(msg);}
     public List<String> color(List<String> msg){return msgUtils.msg(msg);}
     public static Emergency getInstance(){
         return emergency;
     }
-    public Lang getLang() {
+
+    public static Lang getLang() {
         return lang;
     }
-    public void setLang(Lang lang) {
-        this.lang = lang;
+
+    public static EmergencyConfig getEmergencyConfig() {
+        return emergencyConfig;
     }
-    public void setLangType(Lang.LangType langType) {
-        this.langType = langType;
+
+    public static void setEmergencyConfig(EmergencyConfig emergencyConfig) {
+        Emergency.emergencyConfig = emergencyConfig;
     }
-    public static TaskManager getTaskManager() {
-        return taskManager;
+
+    public static WorldConfig getWorldConfig() {
+        return worldConfig;
     }
+
+    public static void setWorldConfig(WorldConfig worldConfig) {
+        Emergency.worldConfig = worldConfig;
+    }
+
+    public static ConfigFile getConfigFile() {
+        return configFile;
+    }
+
+    public static void setConfigFile(ConfigFile configFile) {
+        Emergency.configFile = configFile;
+    }
+
+    public static Lang.LangType getLangType() {
+        return langType;
+    }
+
+    public static void setLangType(Lang.LangType langType) {
+        Emergency.langType = langType;
+    }
+
     public static EmergencyManager getEmergencyManager() {
         return emergencyManager;
     }
+
+    public static void setEmergencyManager(EmergencyManager emergencyManager) {
+        Emergency.emergencyManager = emergencyManager;
+    }
+
     public static WorldManager getWorldManager() {
         return worldManager;
     }
-    public ConfigFile getConfigFile() {
-        return configFile;
+
+    public static void setWorldManager(WorldManager worldManager) {
+        Emergency.worldManager = worldManager;
+    }
+
+    public static TaskManager getTaskManager() {
+        return taskManager;
+    }
+
+    public static void setTaskManager(TaskManager taskManager) {
+        Emergency.taskManager = taskManager;
+    }
+
+    public static AbstractsSQL getSql() {
+        return sql;
+    }
+
+    public static void setSql(AbstractsSQL sql) {
+        Emergency.sql = sql;
+    }
+
+    public static LocalDateTime getLastShutdownTime() {
+        return lastShutdownTime;
+    }
+
+    public static void setLastShutdownTime(LocalDateTime lastShutdownTime) {
+        Emergency.lastShutdownTime = lastShutdownTime;
+    }
+
+    public static String getDatabaseUrl() {
+        return DATABASE_URL;
+    }
+
+    public static void setDatabaseUrl(String databaseUrl) {
+        DATABASE_URL = databaseUrl;
+    }
+    public static ShutdownDAO getShutdownDAO() {
+        return shutdownDAO;
+    }
+    public static TimeWorldDAO getTimeWorldDAO() {
+        return timeWorldDAO;
+    }
+    public static DayWorldDAO getDayWorldDAO() {
+        return dayWorldDAO;
     }
 }
