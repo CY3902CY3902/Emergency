@@ -29,8 +29,8 @@ public class WorldManager {
     }
 
     public static void allRunningEmergencySave() {
-        emergency.getSql().clearTables("day_world");
-        emergency.getSql().clearTables("time_world");
+        emergency.getSql().clearTables("emergency_day_world");
+        emergency.getSql().clearTables("emergency_time_world");
         emergency.getSql().connect();
         try (Connection conn = emergency.getSql().getConnection()) {
             conn.setAutoCommit(false);

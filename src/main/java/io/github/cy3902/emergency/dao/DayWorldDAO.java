@@ -20,7 +20,7 @@ public class DayWorldDAO {
     }
 
     public static void saveDayWorld(DayWorld dayWorld, Connection conn) throws SQLException {
-        String insertSql = "INSERT INTO day_world (`group`, name, world, day) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO emergency_day_world (`group`, name, world, day) VALUES (?, ?, ?, ?)";
         try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
             for (String group : dayWorld.getWorldEmergency().keySet()) {
                 AbstractsEmergency emergency = dayWorld.getWorldEmergency().get(group);
@@ -38,7 +38,7 @@ public class DayWorldDAO {
     }
 
     public void loadEmergency(DayWorld dayWorld) throws SQLException {
-        String selectSql = "SELECT * FROM day_world WHERE world = ?";
+        String selectSql = "SELECT * FROM emergency_day_world WHERE world = ?";
         Emergency emergency = Emergency.getInstance();
         try (Connection conn = abstractsSQL.getConnection();
              PreparedStatement pstmtSelect = conn.prepareStatement(selectSql);) {

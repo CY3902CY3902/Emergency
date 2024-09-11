@@ -18,7 +18,7 @@ public class TimeWorldDAO {
     }
 
     public static void saveTimeWorld(TimeWorld timeWorld, Connection conn) throws SQLException {
-        String insertSql = "INSERT INTO time_world (`group`, name, world, start_time) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO emergency_time_world (`group`, name, world, start_time) VALUES (?, ?, ?, ?)";
         try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
             for (String group : timeWorld.getWorldEmergency().keySet()) {
                 AbstractsEmergency emergency = timeWorld.getWorldEmergency().get(group);
@@ -34,7 +34,7 @@ public class TimeWorldDAO {
 
 
     public void loadEmergency(TimeWorld timeWorld) throws SQLException {
-        String selectSql = "SELECT * FROM time_world WHERE world = ?";
+        String selectSql = "SELECT * FROM emergency_time_world WHERE world = ?";
         Emergency emergency = Emergency.getInstance();
         emergency.getSql().connect();
         try (Connection conn = emergency.getSql().getConnection();

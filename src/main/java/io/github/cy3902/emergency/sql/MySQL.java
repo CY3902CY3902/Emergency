@@ -34,12 +34,12 @@ public class MySQL extends AbstractsSQL {
 
     @Override
     public void createTableIfNotExists() {
-        String createShutdownsTableSQL = "CREATE TABLE IF NOT EXISTS server_shutdowns ("
+        String createShutdownsTableSQL = "CREATE TABLE IF NOT EXISTS emergency_server_shutdowns ("
                 + "id INTEGER PRIMARY KEY AUTO_INCREMENT, "
                 + "shutdown_time TEXT NOT NULL"
                 + ");";
 
-        String createTimeWorldSQL = "CREATE TABLE IF NOT EXISTS time_world ("
+        String createTimeWorldSQL = "CREATE TABLE IF NOT EXISTS emergency_time_world ("
                 + "id INTEGER PRIMARY KEY AUTO_INCREMENT, "
                 + "`group` TEXT NOT NULL, "
                 + "`name` TEXT NOT NULL, "
@@ -47,7 +47,7 @@ public class MySQL extends AbstractsSQL {
                 + "start_time TIMESTAMP NOT NULL"
                 + ");";
 
-        String createDayWorldSQL = "CREATE TABLE IF NOT EXISTS day_world ("
+        String createDayWorldSQL = "CREATE TABLE IF NOT EXISTS emergency_day_world ("
                 + "id INTEGER PRIMARY KEY AUTO_INCREMENT, "
                 + "`group` TEXT NOT NULL, "
                 + "`name` TEXT NOT NULL, "

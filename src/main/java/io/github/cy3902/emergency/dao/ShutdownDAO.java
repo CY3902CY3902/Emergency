@@ -21,10 +21,10 @@ public class ShutdownDAO {
         try (Connection conn = abstractsSQL.getConnection();
              Statement stmt = conn.createStatement()) {
 
-            String deleteSql = "DELETE FROM server_shutdowns";
+            String deleteSql = "DELETE FROM emergency_server_shutdowns";
             stmt.executeUpdate(deleteSql);
 
-            String insertSql = "INSERT INTO server_shutdowns (shutdown_time) VALUES (?)";
+            String insertSql = "INSERT INTO emergency_server_shutdowns (shutdown_time) VALUES (?)";
             try (PreparedStatement insertStatement = conn.prepareStatement(insertSql)) {
                 insertStatement.setString(1, formattedTime);
                 insertStatement.executeUpdate();
@@ -38,7 +38,7 @@ public class ShutdownDAO {
     public LocalDateTime readLastShutdownTime() {
         abstractsSQL.connect();
         LocalDateTime lastShutdownTime = null;
-        String sql = "SELECT shutdown_time FROM server_shutdowns ORDER BY id DESC LIMIT 1";
+        String sql = "SELECT shutdown_time FROM emergency_server_shutdowns ORDER BY id DESC LIMIT 1";
         try (PreparedStatement preparedStatement = this.abstractsSQL.getConnection().prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
