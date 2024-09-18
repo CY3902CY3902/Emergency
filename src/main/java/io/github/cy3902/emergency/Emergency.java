@@ -37,19 +37,20 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
+/**
+ * 主插件類，負責插件的啟用和禁用，以及事件處理。
+ */
 public final class Emergency extends JavaPlugin implements Listener {
 
-
-    private MsgUtils msgUtils = new MsgUtils(this);
+    private final MsgUtils msgUtils = new MsgUtils(this);
 
     private static Emergency emergency;
-
 
     private static Lang lang;
     private static String DATABASE_URL;
     private static Lang.LangType langType;
 
-    private static EmergencyConfig emergencyConfig ;
+    private static EmergencyConfig emergencyConfig;
     private static WorldConfig worldConfig;
     private static ConfigFile configFile;
 
@@ -60,22 +61,20 @@ public final class Emergency extends JavaPlugin implements Listener {
     private static AbstractsSQL sql;
     private static LocalDateTime lastShutdownTime;
 
-
     private static ShutdownDAO shutdownDAO;
-
     private static DayWorldDAO dayWorldDAO;
     private static TimeWorldDAO timeWorldDAO;
 
-    public Emergency() {
-    }
+    /**
+     * 插件啟用時呼叫，初始化插件核心組件和註冊事件。
+     */
     @Override
     public void onEnable() {
-        // Plugin startup logic
-        this.emergency = this;
+        emergency = this;
         try {
             initEssential();
         } catch (IOException e) {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "初始化核心組件失敗", e);
         }
 
         Plugin mythicMobs = Bukkit.getPluginManager().getPlugin("MythicMobs");
@@ -85,19 +84,28 @@ public final class Emergency extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
     }
 
+    /**
+     * 註冊 MythicMobs 事件。
+     */
     private void registerMythicMobsEvents() {
         getServer().getPluginManager().registerEvents(new MythicMobsEventListener(), this);
     }
 
-
+    /**
+     * 初始化插件所需的核心組件和文件夾。
+     *
+     * @throws IOException 如果初始化過程中發生 IO 錯誤
+     */
     public void initEssential() throws IOException {
         emergencyManager = new EmergencyManager();
         worldManager = new WorldManager();
         taskManager = new TaskManager();
+
         File eventFolder = new File(getDataFolder(), "Event");
         File worldFolder = new File(getDataFolder(), "World");
         File langFolder = new File(getDataFolder(), "Lang");
         File sqlFolder = new File(getDataFolder(), "SQL");
+
         if (!eventFolder.exists()) {
             eventFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "Emergency/Event", eventFolder);
@@ -113,49 +121,66 @@ public final class Emergency extends JavaPlugin implements Listener {
         if (!sqlFolder.exists()) {
             sqlFolder.mkdirs();
         }
-        this.lang = null;
 
-        this.configFile = new ConfigFile("plugins/Emergency","Emergency/", "config.yml");
-        this.shutdownDAO = new ShutdownDAO(sql);
-        this.dayWorldDAO = new DayWorldDAO(sql);
-        this.timeWorldDAO = new TimeWorldDAO(sql);
-        this.lang = new Lang("plugins/Emergency/Lang", "Lang/", this.langType + ".yml");
-        this.lastShutdownTime =  shutdownDAO.readLastShutdownTime();
-        this.worldManager.clear();
-        this.emergencyManager.clear();
-        this.emergencyConfig = new EmergencyConfig("plugins/Emergency/Event");
-        this.worldConfig = new WorldConfig("plugins/Emergency/World");
+        lang = null;
+        configFile = new ConfigFile("plugins/Emergency","Emergency/", "config.yml");
+        shutdownDAO = new ShutdownDAO(sql);
+        dayWorldDAO = new DayWorldDAO(sql);
+        timeWorldDAO = new TimeWorldDAO(sql);
+        lang = new Lang("plugins/Emergency/Lang", "Lang/", langType + ".yml");
+        lastShutdownTime = shutdownDAO.readLastShutdownTime();
+
+        worldManager.clear();
+        emergencyManager.clear();
+        emergencyConfig = new EmergencyConfig("plugins/Emergency/Event");
+        worldConfig = new WorldConfig("plugins/Emergency/World");
+
         Bukkit.getPluginCommand("emergency").setExecutor(new Commands());
         Bukkit.getPluginCommand("emergency").setTabCompleter(new Commands());
         Commands.register();
     }
 
+    /**
+     * 插件禁用時呼叫，處理插件關閉邏輯。
+     */
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
-        Emergency.this.getLogger().info(lang.pluginDisable);
+        getLogger().info(lang.pluginDisable);
         LocalDateTime shutdownTime = LocalDateTime.now();
-        worldManager.allWorldPause();
-        worldManager.allEmergencyStop();
-        worldManager.allRunningEmergencySave();
+        WorldManager.allWorldPause();
+        WorldManager.allEmergencyStop();
+        WorldManager.allRunningEmergencySave();
         shutdownDAO.saveShutdownTime(shutdownTime);
         sql.close();
     }
 
-
+    /**
+     * 處理玩家加入世界事件。
+     *
+     * @param event 玩家加入事件
+     */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         String worldName = event.getPlayer().getWorld().getName();
         onJoinWorldEvents(worldName, event.getPlayer());
     }
 
+    /**
+     * 處理玩家退出世界事件。
+     *
+     * @param event 玩家退出事件
+     */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         String worldName = event.getPlayer().getWorld().getName();
         onQuitWorldEvents(worldName, event.getPlayer());
-        onQuitWorldEvents( worldName, event.getPlayer());
     }
 
+    /**
+     * 處理玩家變更世界事件。
+     *
+     * @param event 玩家變更世界事件
+     */
     @EventHandler
     public void onPlayerChangedWorldEvent(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
@@ -163,64 +188,92 @@ public final class Emergency extends JavaPlugin implements Listener {
         String toWorldName = player.getWorld().getName();
 
         onQuitWorldEvents(fromWorldName, event.getPlayer());
-        onJoinWorldEvents(fromWorldName, event.getPlayer());
-
-        onQuitWorldEvents(toWorldName, event.getPlayer());
         onJoinWorldEvents(toWorldName, event.getPlayer());
     }
 
-    private void onJoinWorldEvents( String worldName, Player player) {
-        if (! worldManager.getWorldNameList().contains(worldName)) {
+    /**
+     * 處理玩家進入世界的事件。
+     *
+     * @param worldName 世界名稱
+     * @param player 玩家實例
+     */
+    private void onJoinWorldEvents(String worldName, Player player) {
+        if (!WorldManager.getWorldNameList().contains(worldName)) {
             return;
         }
         Set<AbstractsEmergency> abstractsEmergencyList;
-        for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
-           abstractsEmergencyList =  new HashSet<>(abstractsWorld.getWorldEmergency().values());
-            for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
-                BossBar bossBar = abstractsEmergency.getBossBar();
-                if (bossBar != null) {
-                    bossBar.addPlayer(player);
-                    abstractsEmergency.OnJoinCommand(abstractsWorld,player);
-                }
-            }
-        }
-    }
-
-    private void onQuitWorldEvents(String worldName, Player player) {
-        if (! worldManager.getWorldNameList().contains(worldName)) {
-            return;
-        }
-        Set<AbstractsEmergency> abstractsEmergencyList;
-        for(AbstractsWorld abstractsWorld : worldManager.getWorldList())   {
+        for (AbstractsWorld abstractsWorld : WorldManager.getWorldList()) {
             abstractsEmergencyList = new HashSet<>(abstractsWorld.getWorldEmergency().values());
             for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
                 BossBar bossBar = abstractsEmergency.getBossBar();
                 if (bossBar != null) {
                     bossBar.addPlayer(player);
-                    abstractsEmergency.OnQuitCommand(abstractsWorld,player);
+                    abstractsEmergency.OnJoinCommand(abstractsWorld, player);
                 }
             }
         }
     }
 
-    public void registerEmergency(AbstractsEmergency abstractsEmergency){
+    /**
+     * 處理玩家離開世界的事件。
+     *
+     * @param worldName 世界名稱
+     * @param player 玩家實例
+     */
+    private void onQuitWorldEvents(String worldName, Player player) {
+        if (!WorldManager.getWorldNameList().contains(worldName)) {
+            return;
+        }
+        Set<AbstractsEmergency> abstractsEmergencyList;
+        for (AbstractsWorld abstractsWorld : WorldManager.getWorldList()) {
+            abstractsEmergencyList = new HashSet<>(abstractsWorld.getWorldEmergency().values());
+            for (AbstractsEmergency abstractsEmergency : abstractsEmergencyList) {
+                BossBar bossBar = abstractsEmergency.getBossBar();
+                if (bossBar != null) {
+                    bossBar.removePlayer(player);
+                    abstractsEmergency.OnQuitCommand(abstractsWorld, player);
+                }
+            }
+        }
+    }
+
+    /**
+     * 註冊一個新的緊急事件。
+     *
+     * @param abstractsEmergency 緊急事件實例
+     */
+    public void registerEmergency(AbstractsEmergency abstractsEmergency) {
         emergencyManager.add(abstractsEmergency);
     }
 
-
-
-    public void registerWorld(AbstractsWorld abstractsWorld){
+    /**
+     * 註冊一個新的世界。
+     *
+     * @param abstractsWorld 世界實例
+     */
+    public void registerWorld(AbstractsWorld abstractsWorld) {
         worldManager.add(abstractsWorld);
     }
 
+    /**
+     * 輸出訊息到日誌。
+     *
+     * @param msg 訊息內容
+     * @param level 訊息級別
+     */
     public void info(String msg, Level level){
         getLogger().log(level,msg);
     }
 
-
-
+    /**
+     * 將訊息轉換為顏色訊息。
+     *
+     * @param msg 訊息內容
+     * @return 處理過的顏色訊息
+     */
     public String color(String msg){return msgUtils.msg(msg);}
     public List<String> color(List<String> msg){return msgUtils.msg(msg);}
+
     public static Emergency getInstance(){
         return emergency;
     }

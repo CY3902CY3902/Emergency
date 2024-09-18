@@ -1,11 +1,14 @@
 package io.github.cy3902.emergency.command;
 
+import io.github.cy3902.emergency.Emergency;
 import io.github.cy3902.emergency.abstracts.AbstractsCommand;
 import io.github.cy3902.emergency.abstracts.AbstractsEmergency;
 import io.github.cy3902.emergency.abstracts.AbstractsWorld;
 import io.github.cy3902.emergency.emergency.DayEmergency;
 import io.github.cy3902.emergency.emergency.TimeEmergency;
+import io.github.cy3902.emergency.manager.EmergencyManager;
 import io.github.cy3902.emergency.manager.TaskManager;
+import io.github.cy3902.emergency.manager.WorldManager;
 import io.github.cy3902.emergency.utils.Utils;
 import io.github.cy3902.emergency.world.DayWorld;
 import io.github.cy3902.emergency.world.TimeWorld;
@@ -30,7 +33,7 @@ public class ResumeCommand extends AbstractsCommand {
             return;
         }
 
-        List<AbstractsWorld> worlds = emergency.getWorldManager().getAllWorldByName(worldName);
+        List<AbstractsWorld> worlds = WorldManager.getAllWorldByName(worldName);
 
         for (AbstractsWorld abstractsWorld : worlds) {
             processWorld(abstractsWorld, group, sender);
@@ -46,14 +49,14 @@ public class ResumeCommand extends AbstractsCommand {
 
         if (args.length == 2 && "resume".equalsIgnoreCase(args[0])) {
             return new CommandTabBuilder()
-                    .addTab(new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1, Arrays.asList("resume"), 0)
+                    .addTab(new ArrayList<>(EmergencyManager.getAllGroups()), 1, Arrays.asList("resume"), 0)
                     .build(args);
         }
 
         if (args.length == 3 && "resume".equalsIgnoreCase(args[0])) {
-            List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByGroup(args[1]);
+            List<AbstractsWorld> abstractsWorldList = WorldManager.getAllWorldByGroup(args[1]);
             return new CommandTabBuilder()
-                    .addTab(Utils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(emergency.getEmergencyManager().getAllGroups()), 1)
+                    .addTab(Utils.getAbstractsWorldListName(abstractsWorldList), 2, new ArrayList<>(EmergencyManager.getAllGroups()), 1)
                     .build(args);
         }
 
@@ -77,7 +80,7 @@ public class ResumeCommand extends AbstractsCommand {
 
 
     private AbstractsWorld getCorrespondingWorld(AbstractsEmergency abstractsEmergency, String worldName) {
-        List<AbstractsWorld> abstractsWorldList = emergency.getWorldManager().getAllWorldByName(worldName);
+        List<AbstractsWorld> abstractsWorldList = WorldManager.getAllWorldByName(worldName);
         for(AbstractsWorld abstractsWorld : abstractsWorldList){
             if(abstractsWorld instanceof TimeWorld && abstractsEmergency instanceof TimeEmergency){
             }

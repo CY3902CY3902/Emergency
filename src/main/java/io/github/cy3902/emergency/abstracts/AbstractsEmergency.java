@@ -30,16 +30,25 @@ public abstract class AbstractsEmergency {
         Day, Time
     }
 
+    public AbstractsEmergency(String name) {
+        this.emergency = Emergency.getInstance();
+        this.name = name;
+    }
 
-
+    /**
+     * 執行事件啟動時的命令。
+     * 根據提供的世界對玩家進行命令執行。
+     *
+     * @param abstractsWorld 事件所在的世界
+     */
     protected void startCommand(AbstractsWorld abstractsWorld) {
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(player -> player.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
-        if(startCommand.equals(Arrays.asList(""))){ return;};
+        if(startCommand.equals(Arrays.asList(""))){ return;}
         for (String c : startCommand) {
             if(c.contains("%player_in_world%") && c.contains("%online_player%")){
-                this.emergency.info(emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
+                this.emergency.info(Emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
                 return;
             }
             if(c.contains("%player_in_world%")){
@@ -61,14 +70,20 @@ public abstract class AbstractsEmergency {
         }
     }
 
+    /**
+     * 執行事件結束時的命令。
+     * 根據提供的世界對玩家進行命令執行。
+     *
+     * @param abstractsWorld 事件所在的世界
+     */
     public void endCommand(AbstractsWorld abstractsWorld) {
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(player -> player.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
-        if(endCommand.equals(Arrays.asList(""))){ return;};
+        if(endCommand.equals(Arrays.asList(""))){ return;}
         for (String c : endCommand) {
             if(c.contains("%player_in_world%") && c.contains("%online_player%")){
-                this.emergency.info(emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
+                this.emergency.info(Emergency.getLang().conflictingPlaceholders + c, Level.SEVERE);
                 continue;
             }
             if(c.contains("%player_in_world%")){
@@ -90,14 +105,21 @@ public abstract class AbstractsEmergency {
         }
     }
 
+    /**
+     * 當玩家進入世界時執行相關命令。
+     * 根據提供的世界和玩家對玩家進行命令執行。
+     *
+     * @param abstractsWorld 事件所在的世界
+     * @param player 進入世界的玩家
+     */
     public void OnJoinCommand(AbstractsWorld abstractsWorld,Player  player){
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(p -> p.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
-        if(onJoinCommand.equals(Arrays.asList(""))){ return;};
+        if(onJoinCommand.equals(Arrays.asList(""))){ return;}
         for (String c : onJoinCommand) {
             if(c.contains("%player_in_world%") && c.contains("%online_player%")){
-                this.emergency.info(emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
+                this.emergency.info(Emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
                 continue;
             }
             String playerCommand = c.replace("%player%", player.getName());
@@ -119,14 +141,22 @@ public abstract class AbstractsEmergency {
             }
         }
     }
+
+    /**
+     * 當玩家退出世界時執行相關命令。
+     * 根據提供的世界和玩家對玩家進行命令執行。
+     *
+     * @param abstractsWorld 事件所在的世界
+     * @param player 離開世界的玩家
+     */
     public void OnQuitCommand(AbstractsWorld abstractsWorld,Player  player){
         Collection<? extends Player> playersInWorld = Bukkit.getOnlinePlayers().stream()
                 .filter(p -> p.getWorld().equals(abstractsWorld.getWorld()))
                 .collect(Collectors.toList());
-        if(onQuitCommand.equals(Arrays.asList(""))){ return;};
+        if(onQuitCommand.equals(Arrays.asList(""))){ return;}
         for (String c : onQuitCommand) {
             if(c.contains("%player_in_world%") && c.contains("%online_player%")){
-                this.emergency.info(emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
+                this.emergency.info(Emergency.getLang().conflictingPlaceholders+ c, Level.SEVERE);
                 continue;
             }
             String playerCommand = c.replace("%player%", player.getName());
@@ -149,26 +179,14 @@ public abstract class AbstractsEmergency {
         }
     }
 
-    public AbstractsEmergency(String name) {
-        this.emergency = Emergency.getInstance();
-        this.name = name;
-    }
 
 
-    public abstract void start(AbstractsWorld world, String group);
-
-
-
-    public abstract void stop(AbstractsWorld world, String group);
-
-
-
-    public abstract void pause(AbstractsWorld world, String group);
-
-
-
-    public abstract void resume(AbstractsWorld world, String group);
-
+    /**
+     * 創建並顯示 BossBar。
+     * 根據設置決定是否顯示 BossBar。
+     *
+     * @param world 事件所在的世界
+     */
 
     public void createBossBar(AbstractsWorld world) {
         if (this.bossBarBool == true) {
@@ -178,7 +196,12 @@ public abstract class AbstractsEmergency {
         }
     }
 
-
+    /**
+     * 移除 BossBar 的顯示。
+     * 根據設置決定是否移除 BossBar。
+     *
+     * @param world 事件所在的世界
+     */
     public void removeBossBar(AbstractsWorld world) {
         if (this.bossBarBool == true) {
             for (Player player : world.getWorld().getPlayers()) {
@@ -187,6 +210,37 @@ public abstract class AbstractsEmergency {
         }
     }
 
+    /**
+     * 啟動事件的抽象方法，需由子類實現具體邏輯。
+     *
+     * @param world 事件所在的世界
+     * @param group 事件所屬的群組
+     */
+    public abstract void start(AbstractsWorld world, String group);
+
+    /**
+     * 停止事件的抽象方法，需由子類實現具體邏輯。
+     *
+     * @param world 事件所在的世界
+     * @param group 事件所屬的群組
+     */
+    public abstract void stop(AbstractsWorld world, String group);
+
+    /**
+     * 暫停事件的抽象方法，需由子類實現具體邏輯。
+     *
+     * @param world 事件所在的世界
+     * @param group 事件所屬的群組
+     */
+    public abstract void pause(AbstractsWorld world, String group);
+
+    /**
+     * 恢復事件的抽象方法，需由子類實現具體邏輯。
+     *
+     * @param world 事件所在的世界
+     * @param group 事件所屬的群組
+     */
+    public abstract void resume(AbstractsWorld world, String group);
 
     // Getter for name
     public String getName() {
